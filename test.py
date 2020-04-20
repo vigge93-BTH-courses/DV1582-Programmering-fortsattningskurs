@@ -16,7 +16,7 @@ class Dog(Pet):
 
 
 class Cat(Pet):
-    def __init__(A):
+    def __init__(self, A):
         self.mice_catched = 0
 
 
