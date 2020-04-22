@@ -47,20 +47,22 @@ class Food(Token):
 
 
 class Worker(Token):
-    initial_health = 100
+    max_health = 100
 
     def __init__(self, gui):
         super().__init__()
         self.create_gui_component(gui)
-        self._health = Worker.initial_health
+        self._health = Worker.max_health
 
     @property
     def get_health(self):
+        '''Returns worker's health.'''
         return self._health
 
     @health.setter
     def health(self, health):
-        if 0 < health <= Worker.initial_health:
+        '''Sets workers health if health is in a valid range, otherwise raises ValueError.'''
+        if 0 < health <= Worker.max_health:
             self._health = health
         else:
             raise ValueError
@@ -71,17 +73,21 @@ class Worker(Token):
         self._gui_component = gui.create_token_ui(properties)
 
     def decrease_health(self, amount):
+        '''Removes health from worker, does not check if worker's health is reduced to or below 0.'''
         self._health -= amount
 
     def increase_health(self, amount):
+        '''Adds health to worker and caps it at the worker's max health.'''
         self._health += amount
-        self._health = min(self._health, Worker.initial_health)
+        self._health = min(self._health, Worker.max_health)
 
     def to_json(self):
+        '''Serializes worker to a JSON-string.'''
         return json.dumps({'health': self._health})
 
     @classmethod
     def from_json(cls, data, gui):
+        '''Creates and returns a worker from a json object.'''
         worker = cls(gui)
         worker.health = data['health']
         return worker
