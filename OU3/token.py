@@ -1,4 +1,3 @@
-import simsimsui
 import json
 
 
@@ -36,6 +35,8 @@ class Product(Token):
 
 
 class Food(Token):
+    '''Food type token. Subclass to Token.'''
+
     def __init__(self, gui):
         super().__init__()
         self.create_gui_component(gui)
@@ -47,6 +48,8 @@ class Food(Token):
 
 
 class Worker(Token):
+    '''Worker type token. Subclass to Token.'''
+
     max_health = 100
 
     def __init__(self, gui):
