@@ -1,5 +1,6 @@
 import json
-import token
+from token_simsims import Food, Product, Worker
+from simulation import Simulation
 
 
 class Place():
@@ -31,47 +32,48 @@ class Place():
         else:
             raise RuntimeError('Not enough resources')
 
-    def remove_gui_component(self, gui):
+    def remove_gui_component(self):
         '''Removes place gui component from gui.'''
-        gui.remove(self._gui_component)
+        Simulation.gui.remove(self._gui_component)
 
     def need_to_adapt(self):
         raise NotImplementedError
 
-    def create_gui_component(self, gui):
+    def create_gui_component(self):
         raise NotImplementedError
 
-    def to_json(self):
+    def to_dict(self):
         raise NotImplementedError
 
     @classmethod
-    def from_json(cls, data, gui):
+    def from_dict(cls, data):
         raise NotImplementedError
 
 
 class Shed(Place):
     '''A place to store food tokens.'''
 
-    def __init__(self, gui):
+    def __init__(self):
         super().__init__()
-        self.create_gui_component(gui)
+        self.create_gui_component()
 
-    def create_gui_component(self, gui):
+    def create_gui_component(self):
         '''Creates a green shed gui components and adds it to gui.'''
         properties = {'lable': 'Shed', 'color': '#00ff00'}
-        self._gui_component = gui.create_place_ui(properties)
+        self._gui_component = Simulation.gui.create_place_ui(properties)
 
-    def to_json(self):
+    def to_dict(self):
         '''Serializes shed to a JSON-string.'''
-        return json.dumps({'food': self.get_amount})
+        return {'food': self.get_amount}
 
     @classmethod
-    def from_json(cls, data, gui):
+    def from_dict(cls, data):
         '''Creates and returns a shed from a json object.'''
-        shed = cls(gui)
+        shed = cls()
         for _ in range(data['food']):
-            food = token.Food(gui)
-            gui.connect(shed.get_gui_component, food.get_gui_component)
+            food = Food()
+            Simulation.gui.connect(
+                shed.get_gui_component, food.get_gui_component)
             shed.add(food)
         return shed
 
@@ -79,26 +81,27 @@ class Shed(Place):
 class Magazine(Place):
     '''A place to store product tokens.'''
 
-    def __init__(self, gui):
+    def __init__(self):
         super().__init__()
-        self.create_gui_component(gui)
+        self.create_gui_component()
 
-    def create_gui_component(self, gui):
+    def create_gui_component(self):
         '''Creates a red magazine gui components and adds it to gui.'''
         properties = {'lable': 'Magazine', 'color': '#ff0000'}
-        self._gui_component = gui.create_place_ui(properties)
+        self._gui_component = Simulation.gui.create_place_ui(properties)
 
-    def to_json(self):
+    def to_dict(self):
         '''Serializes magazine to a JSON-string.'''
-        return json.dumps({'product': self.get_amount})
+        return {'product': self.get_amount}
 
     @classmethod
-    def from_json(cls, data, gui):
+    def from_dict(cls, data):
         '''Creates and returns a magazine from a json object.'''
-        magazine = cls(gui)
+        magazine = cls()
         for _ in range(data['product']):
-            product = token.Product(gui)
-            gui.connect(magazine.get_gui_component, product.get_gui_component)
+            product = Product()
+            Simulation.gui.connect(
+                magazine.get_gui_component, product.get_gui_component)
             magazine.add(product)
         return magazine
 
@@ -106,34 +109,34 @@ class Magazine(Place):
 class Road(Place):
     '''A place to store workers'''
 
-    def __init__(self, gui):
+    def __init__(self):
         super().__init__()
-        self.create_gui_component(gui)
+        self.create_gui_component()
 
     def add(self, worker):
         '''Adds a worker to the road and reduces its health proportional to the amount of workers already on the road.'''
         # Removes 1% of max health for each worker on the road
-        life_to_remove = token.Worker.max_health * 0.01 * len(self.get_amount)
+        life_to_remove = Worker.max_health * 0.01 * self.get_amount
         worker.decrease_health(life_to_remove)
         if worker.get_health > 0:
             self._tokens.append(worker)
 
-    def create_gui_component(self, gui):
+    def create_gui_component(self):
         '''Creates a black road gui components and adds it to gui.'''
         properties = {'lable': 'Road', 'color': '#000000'}
-        self._gui_component = gui.create_place_ui(properties)
+        self._gui_component = Simulation.gui.create_place_ui(properties)
 
-    def to_json(self):
+    def to_dict(self):
         '''Serializes road to a JSON-string.'''
-        data = {'workers': [worker.to_json() for worker in self._tokens]}
-        return json.dumps(data)
+        return {'workers': [worker.to_dict() for worker in self._tokens]}
 
     @classmethod
-    def from_json(cls, data, gui):
+    def from_dict(cls, data):
         '''Creates and returns a magazine from a json object.'''
-        road = cls(gui)
-        for worker in range(data['workers']):
-            worker = token.Worker.from_json(worker, gui)
-            gui.connect(road.get_gui_component, worker.get_gui_component)
+        road = cls()
+        for worker in data['workers']:
+            worker = Worker.from_dict(worker)
+            Simulation.gui.connect(
+                road.get_gui_component, worker.get_gui_component)
             road._tokens.append(worker)
         return road
