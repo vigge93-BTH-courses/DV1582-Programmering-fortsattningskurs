@@ -4,6 +4,7 @@ from copy import deepcopy, copy
 import io
 import sys
 
+
 class Coords():
     ''' 
     Represent coordinate pairs.
@@ -11,10 +12,11 @@ class Coords():
     Args:
         x1,y1,x2,y2,...: a sequence of coordinate pairs
     '''
+
     def __init__(self, *args, **kwargs):
         self._coords = []
         self.append(*args)
-    
+
     def __copy__(self):
         newone = type(self)()
         newone._coords = deepcopy(self._coords)
@@ -28,7 +30,7 @@ class Coords():
 
     def __len__(self):
         return len(self._coords)
-    
+
     def __str__(self):
         return "["+", ".join([str(f) for f in self._coords])+"]"
 
@@ -37,7 +39,7 @@ class Coords():
             Args:
                x1, y1, x2, y2, ...:    list of coordinate pairs
         '''
-        nargs = len(args) 
+        nargs = len(args)
         assert nargs % 2 == 0
         for i in range(0, nargs, 2):
             self._coords.extend((float(args[i]), float(args[i+1])))
@@ -48,26 +50,28 @@ class Coords():
                 dx, dy: value by witch to translate coordinates.
         '''
         if len(args) == 1:
-            assert isinstance(args[0], Coords) and len(args[0]) == 2 
-            dx,dy = args[0][:]
+            assert isinstance(args[0], Coords) and len(args[0]) == 2
+            dx, dy = args[0][:]
         elif len(args) == 2:
-            dx,dy = args[:]
+            dx, dy = args[:]
         else:
             raise ValueError("To many or wrong arguments")
 
         nw = type(self)()
-        for i in range(0,len(self._coords),2):
+        for i in range(0, len(self._coords), 2):
             nw.append(self._coords[i]+dx, self._coords[i+1]+dy)
         return nw
+
 
 class SimSimsUI():
     ''' Abstract class for a SimSims User Interface. 
         A UI object create other ui objects for tokens, 
         places and transitions.
     '''
+
     def __init__(self):
-       self._uis = []
-       self._on_shoot = None
+        self._uis = []
+        self._on_shoot = None
 
     def _create_place_ui(self, properties):
         raise NotImplementedError()
@@ -85,7 +89,7 @@ class SimSimsUI():
         ''' Call the on_shoot callback if present. '''
         if self._on_shoot:
             self._on_shoot()
-            
+
     def create_place_ui(self, properties={}):
         ''' Creates an UI for a place.
             Args:
@@ -93,9 +97,11 @@ class SimSimsUI():
                 properties: Properties to the ui (see subclass documentation)
         '''
         ui = self._create_place_ui(properties)
-        if ui: self._uis.append(ui)
+        if ui:
+            self._uis.append(ui)
 
         return ui
+
     def create_token_ui(self, properties={}):
         ''' Creates an UI for a token.
             Args:
@@ -104,6 +110,7 @@ class SimSimsUI():
         '''
         ui = self._create_token_ui(properties)
         return ui
+
     def create_transition_ui(self, properties={}):
         ''' Creates an UI for a transition.
             Args:
@@ -111,7 +118,8 @@ class SimSimsUI():
                 properties: Properties to the ui (see subclass documentation)
         '''
         ui = self._create_transition_ui(properties)
-        if ui: self._uis.append(ui)
+        if ui:
+            self._uis.append(ui)
 
         return ui
 
@@ -124,7 +132,7 @@ class SimSimsUI():
         '''
         if [x for x in src_ui._arcs if x._out == dst_ui]:
             return
-        
+
         barcs = [x for x in dst_ui._arcs if x._out == src_ui]
         if barcs:
             barcs[0].bidirectional = True
@@ -135,6 +143,7 @@ class SimSimsUI():
                 a_ui._in = dst_ui
                 src_ui._arcs.append(a_ui)
                 dst_ui._arcs.append(a_ui)
+                a_ui.update_position()
 
     def remove(self, ui):
         ''' Removes a node from the ui.
@@ -153,10 +162,10 @@ class SimSimsUI():
             This function is implemented by subclasses.
         '''
         raise NotImplementedError()
-        
+
     def on_shoot(self, fkn):
         ''' Set function to call when UI signals a shoot '''
-        self._on_shoot = fkn 
+        self._on_shoot = fkn
 
     def shoot(self):
         ''' Function to call after the simulation is halted to close 
@@ -165,9 +174,11 @@ class SimSimsUI():
             This function is implemented by subclasses.
         '''
         raise NotImplementedError()
-        
+
+
 class UIDrawer:
     ''' Abstract class for a drawer. '''
+
     def __init__(self, properties={}):
         self._properties = {}
         self.properties = properties
@@ -191,8 +202,10 @@ class UIDrawer:
     def shoot(self):
         pass
 
+
 class UIComponent:
     ''' A ui component, that has a drawer to visualize it '''
+
     def __init__(self, drawer):
         self._drawer = drawer
 
@@ -213,6 +226,7 @@ class UIComponent:
     def shoot(self):
         self.drawer.shoot()
 
+
 class UINodeComponent(UIComponent):
     ''' A node component in the ui.
         Args:
@@ -220,6 +234,7 @@ class UINodeComponent(UIComponent):
         Properties:
             tokens: number of tokens
     '''
+
     def __init__(self, drawer):
         UIComponent.__init__(self, drawer)
         self._arcs = []
@@ -272,8 +287,10 @@ class UINodeComponent(UIComponent):
         UIComponent.shoot(self)
         self._tokens.clear()
 
+
 class UIArcComponent(UIComponent):
     '''An arc component in the ui.'''
+
     def __init__(self, outc, inc, drawer):
         self._in = inc
         self._out = outc
@@ -291,9 +308,11 @@ class UIArcComponent(UIComponent):
         ''' Update the position of the arc's drawer '''
         self.drawer.update_position(self._in.drawer, self._out.drawer)
 
+
 class SimSimsTextUI(SimSimsUI):
     ''' A text UI. 
     '''
+
     def __init__(self, channel=io.StringIO()):
         self._fout = channel
         SimSimsUI.__init__(self)
@@ -316,9 +335,11 @@ class SimSimsTextUI(SimSimsUI):
         self._fout.write("-----------------------------------\n")
         print(self._fout.getvalue(), file=sys.stdout)
 
+
 class TextUINodeDrawer(UIDrawer):
     ''' A text drawer for a place.
     '''
+
     def __init__(self, fout, lable, properties={}):
         UIDrawer.__init__(self, properties)
         self._lable = lable
@@ -333,9 +354,11 @@ class TextUINodeDrawer(UIDrawer):
         for drawer in content_drawers:
             drawer.draw()
 
+
 class TextUITokenDrawer(UIDrawer):
     ''' A text drawer for a token. 
     '''
+
     def __init__(self, fout, properties={}):
         UIDrawer.__init__(self, properties)
         self._fout = fout
@@ -344,8 +367,10 @@ class TextUITokenDrawer(UIDrawer):
         ''' Overrides from UIDrawer '''
         self._fout.write("*")
 
+
 class SimSimsGUI(Tk, SimSimsUI):
     ''' A Graphical UI. '''
+
     def __init__(self, w=400, h=400):
         Tk.__init__(self)
 
@@ -359,7 +384,7 @@ class SimSimsGUI(Tk, SimSimsUI):
         self.update()
 
     @property
-    def canvas(self): 
+    def canvas(self):
         ''' The canvas used for drawing objects. '''
         return self._canvas
 
@@ -391,19 +416,23 @@ class SimSimsGUI(Tk, SimSimsUI):
         ''' Overrides from SimSimsUI. '''
         Tk.destroy(self)
 
+
 class GUINodeComponent(UINodeComponent):
     '''A graphical node component. '''
+
     def __init__(self, drawer):
         UINodeComponent.__init__(self, drawer)
 
     def autoplace(self, index, n_places):
         ''' Overrides from UINodeComponent. '''
-        w, h = (self.drawer.canvas.winfo_width(), self.drawer.canvas.winfo_height() )
-        allpos = GUIDrawer.sunflower(n_places, 1.0, min(w,h)/2-1.5*self.drawer._radius)
+        w, h = (self.drawer.canvas.winfo_width(),
+                self.drawer.canvas.winfo_height())
+        allpos = GUIDrawer.sunflower(
+            n_places, 1.0, min(w, h)/2-1.5*self.drawer._radius)
         x = w // 2
         y = h // 2
 
-        self.drawer.position = Coords(x,y).translate(allpos[index-1])
+        self.drawer.position = Coords(x, y).translate(allpos[index-1])
         for a in self._arcs:
             a.update_position()
         self.draw()
@@ -427,13 +456,15 @@ class GUINodeComponent(UINodeComponent):
         UINodeComponent.remove_token(self, token)
         self.draw()
 
+
 class GUIDrawer(UIDrawer):
     ''' An abstract GUI drawer.
-    
+
         Args:
             canvas: The canvas from the GUI-window
             properties: Common properties for GUI components.
     '''
+
     def __init__(self, canvas, properties):
         UIDrawer.__init__(self, properties)
 
@@ -452,7 +483,7 @@ class GUIDrawer(UIDrawer):
     def canvas(self):
         ''' The canvas used for drawing objects. '''
         return self._canvas
-        
+
     @property
     def shapes(self):
         ''' The canvas used for drawing objects. '''
@@ -473,7 +504,7 @@ class GUIDrawer(UIDrawer):
 
     def _set_position(self, *args):
         if len(args) == 1:
-            assert isinstance(args[0], Coords) and len(args[0]) == 2 
+            assert isinstance(args[0], Coords) and len(args[0]) == 2
             self._xy = args[0]
         elif len(args) == 2:
             self._xy = Coords(args[0], args[1])
@@ -497,7 +528,7 @@ class GUIDrawer(UIDrawer):
         self._shapes.clear()
 
     @classmethod
-    def _sf_radius(cls, k,n,b):
+    def _sf_radius(cls, k, n, b):
         if k > n-b:
             r = 1
         else:
@@ -511,14 +542,15 @@ class GUIDrawer(UIDrawer):
         pairs = []
         b = round(alpha*sqrt(n))
         phi = (sqrt(5)+1)/2
-        for k in range (1,n+1):
-            r = radius*GUIDrawer._sf_radius(k,n,b)
+        for k in range(1, n+1):
+            r = radius*GUIDrawer._sf_radius(k, n, b)
             theta = 2*pi*k/phi**2
             x = r*cos(theta)
             y = r*sin(theta)
             pairs.append(Coords(x, y))
-        
+
         return pairs
+
 
 class GUITokenDrawer(GUIDrawer):
     ''' A graphical token drawer '''
@@ -526,15 +558,19 @@ class GUITokenDrawer(GUIDrawer):
 
     def __init__(self, canvas, properties={}):
         GUIDrawer.__init__(self, canvas, properties)
-    
+
     def _define(self):
-        shape = self.canvas.create_oval(0.0, 0.0, 0.0, 0.0, fill=self.properties["color"], width=0, outline=self.properties["color"])
+        shape = self.canvas.create_oval(
+            0.0, 0.0, 0.0, 0.0, fill=self.properties["color"], width=0, outline=self.properties["color"])
         self.canvas.tag_raise(shape)
-        coords = Coords(-GUITokenDrawer.BASE_LENGTH, -GUITokenDrawer.BASE_LENGTH, GUITokenDrawer.BASE_LENGTH, GUITokenDrawer.BASE_LENGTH)
+        coords = Coords(-GUITokenDrawer.BASE_LENGTH, -GUITokenDrawer.BASE_LENGTH,
+                        GUITokenDrawer.BASE_LENGTH, GUITokenDrawer.BASE_LENGTH)
         self.shapes.append((shape, coords))
+
 
 class GUINodeDrawer(GUIDrawer):
     ''' An abstract graphical node drawer '''
+
     def __init__(self, canvas, size, properties={}):
         self._font = font.Font(family='Arial', size=7)
         self._radius = size
@@ -545,32 +581,38 @@ class GUINodeDrawer(GUIDrawer):
         GUIDrawer._verify_properties(self, properties)
         if not "fill" in self.properties.keys():
             self.properties["fill"] = "#fff"
-        
+
     def draw(self, content_drawers):
         ''' Overrides from UIDrawer '''
         GUIDrawer.draw(self)
         cps = GUIDrawer.sunflower(len(content_drawers), 1.0, 0.8*self._radius)
         for i in range(len(content_drawers)):
-            content_drawers[i].drawer.position = cps[i].translate(self.position)
+            content_drawers[i].drawer.position = cps[i].translate(
+                self.position)
             content_drawers[i].draw()
 
     def anchor_point(self, coord):
         ''' Virtual method to calculate an anchor point for an arc. '''
         raise NotImplementedError()
 
+
 class GUIPlaceDrawer(GUINodeDrawer):
     ''' A graphical place drawer '''
+
     def __init__(self, canvas, properties={}):
         GUINodeDrawer.__init__(self, canvas, 15.0, properties)
-              
+
     def _define(self):
         ''' Overrides from GUIDrawer '''
-        shape = self.canvas.create_oval(0.0, 0.0, 0.0, 0.0, fill=self.properties["fill"], width=2, outline=self.properties["color"])
+        shape = self.canvas.create_oval(
+            0.0, 0.0, 0.0, 0.0, fill=self.properties["fill"], width=2, outline=self.properties["color"])
         self.canvas.tag_lower(shape)
-        coords = Coords(-self._radius, -self._radius, self._radius, self._radius)
+        coords = Coords(-self._radius, -self._radius,
+                        self._radius, self._radius)
         self.shapes.append((shape, coords))
         if "lable" in self.properties.keys():
-            shape = self.canvas.create_text(0.0, 0.0, text=self.properties["lable"], font=self._font, justify=CENTER, fill=self.properties["color"])
+            shape = self.canvas.create_text(
+                0.0, 0.0, text=self.properties["lable"], font=self._font, justify=CENTER, fill=self.properties["color"])
             coords = Coords(0.0, self._radius+7)
             self.shapes.append((shape, coords))
 
@@ -588,19 +630,24 @@ class GUIPlaceDrawer(GUINodeDrawer):
             y = y1-r
         return Coords(x+x1, y+y1)
 
+
 class GUITransitionDrawer(GUINodeDrawer):
     ''' A graphical transition drawer '''
+
     def __init__(self, canvas, properties={}):
         GUINodeDrawer.__init__(self, canvas, 12.0, properties)
-        
+
     def _define(self):
         ''' Overrides from GUIrawer '''
-        shape = self.canvas.create_rectangle(0.0, 0.0, 0.0, 0.0, fill=self.properties["fill"], width=2, outline=self.properties["color"])
+        shape = self.canvas.create_rectangle(
+            0.0, 0.0, 0.0, 0.0, fill=self.properties["fill"], width=2, outline=self.properties["color"])
         self.canvas.tag_lower(shape)
-        coords= Coords(-self._radius, -self._radius, self._radius, self._radius)
+        coords = Coords(-self._radius, -self._radius,
+                        self._radius, self._radius)
         self._shapes.append((shape, coords, self.properties))
         if "lable" in self.properties.keys():
-            shape = self.canvas.create_text(0.0, 0.0, text=self.properties["lable"], font=self._font, justify=CENTER, fill=self.properties["color"])
+            shape = self.canvas.create_text(
+                0.0, 0.0, text=self.properties["lable"], font=self._font, justify=CENTER, fill=self.properties["color"])
             coords = Coords(0.0, self._radius+7)
             self.shapes.append((shape, coords))
 
@@ -611,21 +658,25 @@ class GUITransitionDrawer(GUINodeDrawer):
         dxa, dya = abs(dx), abs(dy)
 
         if dxa < 0.0001 and dya < 0.0001:
-            (x, y) = (0.0,0.0)
+            (x, y) = (0.0, 0.0)
         elif dxa > dya:
             x = self._radius
-            y =self._radius*dya/dxa
+            y = self._radius*dya/dxa
         else:
             x = self._radius*dxa/dya
             y = self._radius
-            
-        if dx < 0.0: x = -x
-        if dy < 0.0: y = -y
+
+        if dx < 0.0:
+            x = -x
+        if dy < 0.0:
+            y = -y
 
         return Coords(x+x1, y+y1)
 
+
 class GUIArcDrawer(GUIDrawer):
     ''' A graphical arc drawer '''
+
     def __init__(self, canvas, properties={}):
         self._bidirectional = False
         GUIDrawer.__init__(self, canvas, properties)
@@ -646,12 +697,13 @@ class GUIArcDrawer(GUIDrawer):
 
     def _define(self):
         ''' Overrides from GUIDrawer '''
-        coord1 = Coords(0.0,0.0)
-        coord2 = Coords(0.0,0.0)
+        coord1 = Coords(0.0, 0.0)
+        coord2 = Coords(0.0, 0.0)
         arrow = None
         if self.properties["arrows"]:
             arrow = LAST
-        s = self.canvas.create_line(coord1[0], coord1[1], coord2[0], coord2[1], fill=self.properties["color"], width=3, arrow=arrow)
+        s = self.canvas.create_line(
+            coord1[0], coord1[1], coord2[0], coord2[1], fill=self.properties["color"], width=3, arrow=arrow)
         self.shapes.append((s, None, self.properties))
 
     def _verify_properties(self, properties):
