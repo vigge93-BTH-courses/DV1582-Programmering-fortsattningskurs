@@ -1,17 +1,19 @@
 import simsimsui
 import simulation
-from place import Road
-from token_simsims import Worker
+import arc
 import json
+import transition
 
 if __name__ == "__main__":
-    simulation = simulation.Simulation()
-    simulation.create_gui()
-    road = Road()
-    for _ in range(5):
-        worker = Worker()
-        road.add(worker)
-    d = road.to_dict()
-    print(d)
-    r = Road.from_dict(d)
-    print(r.to_dict())
+    sim = simulation.Simulation(20)
+
+    sim.add_transition(transition.Farmland())
+    sim.add_transition(transition.Foodcourt())
+    sim.add_transition(transition.Factory())
+    sim.add_transition(transition.Apartment())
+
+    arc.Arc.set_simulation(simulation)
+
+    sim.update_gui()
+
+    input()
