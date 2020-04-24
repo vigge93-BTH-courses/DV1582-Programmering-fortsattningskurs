@@ -1,5 +1,5 @@
 import json
-from simulation import Simulation
+import simulation
 
 
 class Token():
@@ -16,7 +16,7 @@ class Token():
     def remove_gui_component(self):
         '''Removes own gui component from gui.'''
         if self._gui_component:
-            Simulation.gui.remove(self._gui_component)
+            simulation.Simulation.gui.remove(self._gui_component)
 
     def create_gui_component(self):
         raise NotImplementedError
@@ -32,7 +32,8 @@ class Product(Token):
     def create_gui_component(self):
         '''Creates a red token gui component and adds it to the gui.'''
         properties = {'color': '#ff0000'}
-        self._gui_component = Simulation.gui.create_token_ui(properties)
+        self._gui_component = simulation.Simulation.gui.create_token_ui(
+            properties)
 
 
 class Food(Token):
@@ -45,7 +46,8 @@ class Food(Token):
     def create_gui_component(self):
         '''Creates a green token gui component and adds it to the gui.'''
         properties = {'color': '#00ff00'}
-        self._gui_component = Simulation.gui.create_token_ui(properties)
+        self._gui_component = simulation.Simulation.gui.create_token_ui(
+            properties)
 
 
 class Worker(Token):
@@ -74,7 +76,8 @@ class Worker(Token):
     def create_gui_component(self):
         '''Creates a red token gui component and adds it to the gui.'''
         properties = {'color': '#000000'}
-        self._gui_component = Simulation.gui.create_token_ui(properties)
+        self._gui_component = simulation.Simulation.gui.create_token_ui(
+            properties)
 
     def decrease_health(self, amount):
         '''Removes health from worker, does not check if worker's health is reduced to or below 0.'''
@@ -86,12 +89,12 @@ class Worker(Token):
         self._health = min(self._health, Worker.max_health)
 
     def to_dict(self):
-        '''Serializes worker to a JSON-string.'''
+        '''Serializes worker to a dictionary.'''
         return {'health': self._health}
 
     @classmethod
     def from_dict(cls, data):
-        '''Creates and returns a worker from a json object.'''
+        '''Creates and returns a worker from a dict object.'''
         worker = cls()
         worker.health = data['health']
         return worker
