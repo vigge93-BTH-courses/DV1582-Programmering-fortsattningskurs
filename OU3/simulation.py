@@ -29,6 +29,11 @@ class Simulation():
         '''Returns the magazine.'''
         return self._magazine
 
+    # @classmethod #https://docs.astropy.org/en/stable/api/astropy.utils.decorators.classproperty.html
+    # @property
+    # def get_gui(cls):
+    #     return cls._gui
+
     def create_gui(self):
         '''Creates a gui class attribute.'''
         Simulation.gui = simsimsui.SimSimsGUI(w=400, h=400)

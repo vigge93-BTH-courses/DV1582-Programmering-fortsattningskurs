@@ -1,4 +1,6 @@
 class Arc():
+    # TODO Make thread safe
+
     '''Static class to manage transportation of tokens.'''
     simulation = None
 
