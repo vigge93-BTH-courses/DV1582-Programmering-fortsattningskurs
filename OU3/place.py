@@ -27,7 +27,7 @@ class Place(GUINodeInterface):
         '''Removes and returns the first token in the container.'''
         if len(self._tokens) > 0:
             token = self._tokens[0]
-            self._gui_component.remove_token(token)
+            self._gui_component.remove_token(token.get_gui_component)
             self._tokens = self._tokens[1:]
             return token
         else:
