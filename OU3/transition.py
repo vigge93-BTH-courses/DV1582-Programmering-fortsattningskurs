@@ -2,22 +2,31 @@ import simulation
 import token_simsims as token
 from enum import Enum, unique
 from GUINodeInterface import GUINodeInterface
+from threading import Thread
 
 
-class Transition(GUINodeInterface):
+class Transition(GUINodeInterface, Thread):
     '''Parent class for all transitions.'''
 
     def __init__(self):
+        Thread.__init__(self)
         self._tokens = []
         self.stop_thread = False
 
     def run(self):
-        '''Starts the thread.'''
-        pass
+        '''Runs the thread.'''
+        while not self.stop_thread:
+            self._get_tokens()
+            simulation.Simulation.gui.update()
+            self._trigger()
+            simulation.Simulation.gui.update()
+            self._release_tokens()
+            simulation.Simulation.gui.update()
+        print('thread closed')
 
     def finish_thread(self):
         '''Sends a signal to the thread to finish. Returns after thread is done.'''
-        pass
+        self.stop_thread = True
 
     def _get_tokens(self):
         raise NotImplementedError
