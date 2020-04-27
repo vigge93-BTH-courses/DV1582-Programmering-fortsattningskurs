@@ -2,6 +2,9 @@ import simulation
 import token_simsims as token
 from enum import Enum, unique
 from GUINodeInterface import GUINodeInterface
+from arc import Arc
+import random
+from time import sleep
 from threading import Thread
 
 
@@ -28,6 +31,15 @@ class Transition(GUINodeInterface, Thread):
         '''Sends a signal to the thread to finish. Returns after thread is done.'''
         self.stop_thread = True
 
+    def _add_token(self, token):
+        '''Appends a token to the tokens and adds it to the gui.'''
+        self._gui_component.add_token(token.get_gui_component)
+        self._tokens.append(token)
+
+    def _remove_token(self, token):
+        self._gui_component.remove_token(token.get_gui_component)
+        self._tokens.remove(token)
+
     def _get_tokens(self):
         raise NotImplementedError
 
@@ -45,6 +57,11 @@ class Transition(GUINodeInterface, Thread):
 
 
 class Foodcourt(Transition):
+    poisoning_risk = 0.05
+    min_restore = 5
+    max_restore = 25
+    production_time = 1
+
     def __init__(self):
         super().__init__()
         self.create_gui_component()
@@ -55,13 +72,26 @@ class Foodcourt(Transition):
             parameters)
 
     def _get_tokens(self):
-        pass
+        sleep(Arc.transport_time)
+        self._add_token(Arc.get_worker())
+        self._add_token(Arc.get_food())
 
     def _trigger(self):
-        pass
+        sleep(Foodcourt.production_time)
+        health_diff = random.randint(
+            Foodcourt.min_restore, Foodcourt.max_restore)
+        if random.random() < Foodcourt.poisoning_risk:
+            self._tokens[0].decrease_health(health_diff)
+        else:
+            self._tokens[0].increase_health(health_diff)
+        self._remove_token(self._tokens[1])
 
     def _release_tokens(self):
-        pass
+        sleep(Arc.transport_time)
+        for tok in self._tokens:
+            self._gui_component.remove_token(tok.get_gui_component)
+            Arc.store_worker(tok)
+        self._tokens = []
 
     def to_dict(self):
         data = {'type': 'foodcourt', 'worker': None, 'food': 0}
@@ -141,6 +171,10 @@ class Apartment(Transition):
 
 
 class Farmland(Transition):
+    risk = 0.5
+    health_decrease = 40
+    production_time = 1
+
     def __init__(self):
         super().__init__()
         self.create_gui_component()
@@ -151,13 +185,26 @@ class Farmland(Transition):
             parameters)
 
     def _get_tokens(self):
-        pass
+        sleep(Arc.transport_time)
+        worker = Arc.get_worker()
+        self._add_token(worker)
 
     def _trigger(self):
-        pass
+        sleep(Farmland.production_time)
+        food = token.Food()
+        self._add_token(food)
+        if random.random() < Farmland.risk:
+            self._tokens[0].decrease_health(Farmland.health_decrease)
 
     def _release_tokens(self):
-        pass
+        sleep(Arc.transport_time)
+        for tok in self._tokens:
+            self._gui_component.remove_token(tok.get_gui_component)
+            if type(tok) == token.Worker:
+                Arc.store_worker(tok)
+            elif type(tok) == token.Food:
+                Arc.store_food(tok)
+        self._tokens = []
 
     def to_dict(self):
         data = {'type': 'farmland', 'worker': None, 'food': 0}
