@@ -33,8 +33,6 @@ class Arc():
         except RuntimeError:
             return None
 
-    # TODO Fix gui connections in store methods
-
     @classmethod
     def store_worker(cls, worker):
         '''Stores a worker on the road.'''
