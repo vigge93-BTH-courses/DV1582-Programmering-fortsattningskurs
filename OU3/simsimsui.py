@@ -1,4 +1,5 @@
-from tkinter import Tk, Canvas, CENTER, LAST, BOTH, font
+import mtTkinter
+from tkinter import font
 from math import sqrt, sin, cos, pi
 from copy import deepcopy, copy
 import io
@@ -368,18 +369,18 @@ class TextUITokenDrawer(UIDrawer):
         self._fout.write("*")
 
 
-class SimSimsGUI(Tk, SimSimsUI):
+class SimSimsGUI(mtTkinter.Tk, SimSimsUI):
     ''' A Graphical UI. '''
 
     def __init__(self, w=400, h=400):
-        Tk.__init__(self)
+        mtTkinter.Tk.__init__(self)
 
         self.protocol("WM_DELETE_WINDOW", self._shoot)
         # make Esc exit the program
         self.bind('<Escape>', lambda e: self._shoot())
 
         SimSimsUI.__init__(self)
-        self._canvas = Canvas(self, width=w, height=h)
+        self._canvas = mtTkinter.Canvas(self, width=w, height=h)
         self._canvas.pack()
         self.update()
 
@@ -403,7 +404,7 @@ class SimSimsGUI(Tk, SimSimsUI):
     def _shoot(self):
         ''' Overrides from SimSimsUI '''
         SimSimsUI._shoot(self)
-        Tk.iconify(self)
+        mtTkinter.Tk.iconify(self)
 
     def update_ui(self):
         ''' Overrides from TokenUI '''
@@ -414,7 +415,7 @@ class SimSimsGUI(Tk, SimSimsUI):
 
     def shoot(self):
         ''' Overrides from SimSimsUI. '''
-        Tk.destroy(self)
+        mtTkinter.Tk.destroy(self)
 
 
 class GUINodeComponent(UINodeComponent):
@@ -612,7 +613,7 @@ class GUIPlaceDrawer(GUINodeDrawer):
         self.shapes.append((shape, coords))
         if "lable" in self.properties.keys():
             shape = self.canvas.create_text(
-                0.0, 0.0, text=self.properties["lable"], font=self._font, justify=CENTER, fill=self.properties["color"])
+                0.0, 0.0, text=self.properties["lable"], font=self._font, justify=mtTkinter.CENTER, fill=self.properties["color"])
             coords = Coords(0.0, self._radius+7)
             self.shapes.append((shape, coords))
 
@@ -647,7 +648,7 @@ class GUITransitionDrawer(GUINodeDrawer):
         self._shapes.append((shape, coords, self.properties))
         if "lable" in self.properties.keys():
             shape = self.canvas.create_text(
-                0.0, 0.0, text=self.properties["lable"], font=self._font, justify=CENTER, fill=self.properties["color"])
+                0.0, 0.0, text=self.properties["lable"], font=self._font, justify=mtTkinter.CENTER, fill=self.properties["color"])
             coords = Coords(0.0, self._radius+7)
             self.shapes.append((shape, coords))
 
@@ -690,9 +691,9 @@ class GUIArcDrawer(GUIDrawer):
         if not self.properties["arrows"]:
             return
         if b:
-            self.canvas.itemconfig(self._shapes[0][0], arrow=BOTH)
+            self.canvas.itemconfig(self._shapes[0][0], arrow=mtTkinter.BOTH)
         else:
-            self.canvas.itemconfig(self._shapes[0][0], arrow=LAST)
+            self.canvas.itemconfig(self._shapes[0][0], arrow=mtTkinter.LAST)
         self._bidirectional = b
 
     def _define(self):
@@ -701,7 +702,7 @@ class GUIArcDrawer(GUIDrawer):
         coord2 = Coords(0.0, 0.0)
         arrow = None
         if self.properties["arrows"]:
-            arrow = LAST
+            arrow = mtTkinter.LAST
         s = self.canvas.create_line(
             coord1[0], coord1[1], coord2[0], coord2[1], fill=self.properties["color"], width=3, arrow=arrow)
         self.shapes.append((s, None, self.properties))
