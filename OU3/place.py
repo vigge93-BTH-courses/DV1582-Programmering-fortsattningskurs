@@ -113,8 +113,7 @@ class Road(Place):
         '''Adds a worker to the road and reduces its health proportional to the amount of workers already on the road.'''
         # Removes 1% of max health for each worker on the road
         life_to_remove = token.Worker.max_health * 0.01 * self.get_amount
-        worker.decrease_health(life_to_remove)
-        if worker.get_health > 0:
+        if not worker.decrease_health(life_to_remove):
             super().add(worker)
 
     def create_gui_component(self):

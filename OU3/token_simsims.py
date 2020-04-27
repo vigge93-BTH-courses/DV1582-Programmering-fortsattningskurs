@@ -66,8 +66,9 @@ class Worker(Token):
             properties)
 
     def decrease_health(self, amount):
-        '''Removes health from worker, does not check if worker's health is reduced to or below 0.'''
+        '''Removes health from worker and returns True if workers health drops to or below 0.'''
         self._health -= amount
+        return self._health <= 0
 
     def increase_health(self, amount):
         '''Adds health to worker and caps it at the worker's max health.'''
