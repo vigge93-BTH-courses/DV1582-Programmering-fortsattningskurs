@@ -1,6 +1,6 @@
 import simulation
 import token_simsims as token
-from enum import Enum, auto, unique
+from enum import Enum, unique
 
 
 class Transition():
@@ -114,7 +114,7 @@ class Apartment(Transition):
         data = {'type': 'apartment',
                 'workers': [],
                 'products': 0,
-                'mode': self._mode
+                'mode': self._mode.value
                 }
         for token in self._tokens:
             if type(token) == token.Product:
@@ -136,7 +136,7 @@ class Apartment(Transition):
             apartment._tokens.append(product)
             apartment.get_gui_component.add_token(product.get_gui_component)
 
-        apartment._mode = data['mode']
+        apartment._mode = ApartmentMode(data['mode'])
         return apartment
 
 
@@ -214,7 +214,7 @@ class Factory(Transition):
     @classmethod
     def from_dict(cls, data):
         factory = cls()
-        if 'worker' in data:
+        if data['worker']:
             worker = token.Worker.from_dict(data['worker'])
             factory._tokens.append(worker)
             factory.get_gui_component.add_token(worker.get_gui_component)
@@ -228,6 +228,6 @@ class Factory(Transition):
 
 @unique
 class ApartmentMode(Enum):
-    NEUTRAL = auto()
-    REST = auto()
-    MULTIPLY = auto()
+    NEUTRAL = 1
+    REST = 2
+    MULTIPLY = 3

@@ -142,6 +142,6 @@ class Road(Place):
         road = cls(0)
         for worker in data['workers']:
             worker = token.Worker.from_dict(worker)
-            road.get_gui_component.add_token(worker.get_gui_component)
             road._tokens.append(worker)
+            road.get_gui_component.add_token(worker.get_gui_component)
         return road

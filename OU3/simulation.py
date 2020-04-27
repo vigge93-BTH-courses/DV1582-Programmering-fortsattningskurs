@@ -94,15 +94,27 @@ class Simulation():
             'transitions': [transition.to_dict() for transition in self._transitions]
         }
 
-    # TODO Add transitions to simulation
     @classmethod
     def from_dict(cls, data):
         '''Creates a simulation object from a dictionary.'''
         sim = cls()
+        sim._road.remove_gui_component()
+        sim._shed.remove_gui_component()
+        sim._magazine.remove_gui_component()
         road = place.Road.from_dict(data['road'])
         shed = place.Shed.from_dict(data['shed'])
         magazine = place.Magazine.from_dict(data['magazine'])
         sim._road = road
         sim._shed = shed
         sim._magazine = magazine
+        for trans in data['transitions']:
+            if trans['type'] == 'foodcourt':
+                sim.add_transition(transition.Foodcourt.from_dict(trans))
+            elif trans['type'] == 'farmland':
+                sim.add_transition(transition.Farmland.from_dict(trans))
+            elif trans['type'] == 'apartment':
+                sim.add_transition(transition.Apartment.from_dict(trans))
+            elif trans['type'] == 'factory':
+                sim.add_transition(transition.Factory.from_dict(trans))
+        sim.update_gui()
         return sim
