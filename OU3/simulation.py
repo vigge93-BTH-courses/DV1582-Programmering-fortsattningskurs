@@ -94,6 +94,7 @@ class Simulation():
             'transitions': [transition.to_dict() for transition in self._transitions]
         }
 
+    # TODO Add transitions to simulation
     @classmethod
     def from_dict(cls, data):
         '''Creates a simulation object from a dictionary.'''

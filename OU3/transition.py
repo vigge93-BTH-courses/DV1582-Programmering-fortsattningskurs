@@ -37,6 +37,12 @@ class Transition():
     def _release_tokens(self):
         raise NotImplementedError
 
+    def to_dict(self):
+        raise NotImplementedError
+
+    def from_dict(self, data):
+        raise NotImplementedError
+
 
 class Foodcourt(Transition):
     def __init__(self):
@@ -58,11 +64,27 @@ class Foodcourt(Transition):
         pass
 
     def to_dict(self):
-        pass
+        data = {'type': 'foodcourt', 'worker': None, 'food': 0}
+        for token in self._tokens:
+            if type(token) == token.Food:
+                data['food'] += 1
+            else:
+                data['worker'] = token.to_dict()
+        return data
 
     @classmethod
     def from_dict(cls, data):
-        pass
+        foodcourt = cls()
+        if data['worker']:
+            worker = token.Worker.from_dict(data['worker'])
+            foodcourt._tokens.append(worker)
+            foodcourt.get_gui_component.add_token(worker.get_gui_component)
+
+        for _ in range(data['food']):
+            food = token.Food()
+            foodcourt._tokens.append(food)
+            foodcourt.get_gui_component.add_token(food.get_gui_component)
+        return foodcourt
 
 
 class Apartment(Transition):
@@ -89,11 +111,33 @@ class Apartment(Transition):
         pass
 
     def to_dict(self):
-        pass
+        data = {'type': 'apartment',
+                'workers': [],
+                'products': 0,
+                'mode': self._mode
+                }
+        for token in self._tokens:
+            if type(token) == token.Product:
+                data['products'] += 1
+            else:
+                data['workers'].append(token.to_dict())
+        return data
 
     @classmethod
     def from_dict(cls, data):
-        pass
+        apartment = cls()
+        for worker in data['workers']:
+            worker = token.Worker.from_dict(worker)
+            apartment._tokens.append(worker)
+            apartment.get_gui_component.add_token(worker.get_gui_component)
+
+        for _ in range(data['products']):
+            product = token.Product()
+            apartment._tokens.append(product)
+            apartment.get_gui_component.add_token(product.get_gui_component)
+
+        apartment._mode = data['mode']
+        return apartment
 
 
 class Farmland(Transition):
@@ -116,11 +160,27 @@ class Farmland(Transition):
         pass
 
     def to_dict(self):
-        pass
+        data = {'type': 'farmland', 'worker': None, 'food': 0}
+        for token in self._tokens:
+            if type(token) == token.Food:
+                data['food'] += 1
+            else:
+                data['worker'] = token.to_dict()
+        return data
 
     @classmethod
     def from_dict(cls, data):
-        pass
+        farmland = cls()
+        if data['worker']:
+            worker = token.Worker.from_dict(data['worker'])
+            farmland._tokens.append(worker)
+            farmland.get_gui_component.add_token(worker.get_gui_component)
+
+        for _ in range(data['food']):
+            food = token.Food()
+            farmland._tokens.append(food)
+            farmland.get_gui_component.add_token(food.get_gui_component)
+        return farmland
 
 
 class Factory(Transition):
@@ -143,11 +203,27 @@ class Factory(Transition):
         pass
 
     def to_dict(self):
-        pass
+        data = {'type': 'factory', 'worker': None, 'products': 0}
+        for token in self._tokens:
+            if type(token) == token.Product:
+                data['products'] += 1
+            else:
+                data['worker'] = token.to_dict()
+        return data
 
     @classmethod
     def from_dict(cls, data):
-        pass
+        factory = cls()
+        if 'worker' in data:
+            worker = token.Worker.from_dict(data['worker'])
+            factory._tokens.append(worker)
+            factory.get_gui_component.add_token(worker.get_gui_component)
+
+        for _ in range(data['products']):
+            product = token.Product()
+            factory._tokens.append(product)
+            factory.get_gui_component.add_token(product.get_gui_component)
+        return factory
 
 
 @unique
