@@ -19,3 +19,6 @@ class GUINodeInterface():
 
     def create_gui_component(self):
         raise NotImplementedError
+
+    def __del__(self):
+        simulation.Simulation.gui.remove(self._gui_component)
