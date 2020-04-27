@@ -76,8 +76,7 @@ class Shed(Place):
         shed = cls()
         for _ in range(data['food']):
             food = token.Food()
-            simulation.Simulation.gui.connect(
-                shed.get_gui_component, food.get_gui_component)
+            shed.get_gui_component.add_token(food.get_gui_component)
             shed.add(food)
         return shed
 
@@ -105,8 +104,7 @@ class Magazine(Place):
         magazine = cls()
         for _ in range(data['product']):
             product = token.Product()
-            simulation.Simulation.gui.connect(
-                magazine.get_gui_component, product.get_gui_component)
+            magazine.get_gui_component.add_token(product.get_gui_component)
             magazine.add(product)
         return magazine
 
