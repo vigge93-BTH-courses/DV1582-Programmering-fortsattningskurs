@@ -80,11 +80,14 @@ class Simulation():
 
     def start(self):
         '''Starts the simulation.'''
-        pass
+        for trans in self._transitions:
+            trans.start()
 
     def stop(self):
         '''Stops the simulation.'''
         print('Stop')
+        for transition in self._transitions:
+            transition.finish_thread()
 
     def adapt(self):
         '''Adds or removes transitions and changes priority of apartments in order to balance the system.'''
