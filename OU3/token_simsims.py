@@ -1,25 +1,11 @@
 import json
 import simulation
+from GUINodeInterface import GUINodeInterface
 
 
-class Token():
+class Token(GUINodeInterface):
     '''Parent class for all tokens.'''
-
-    def __init__(self):
-        self._gui_component = None
-
-    @property
-    def get_gui_component(self):
-        '''Returns tokens gui component.'''
-        return self._gui_component
-
-    def remove_gui_component(self):
-        '''Removes own gui component from gui.'''
-        if self._gui_component:
-            simulation.Simulation.gui.remove(self._gui_component)
-
-    def create_gui_component(self):
-        raise NotImplementedError
+    pass
 
 
 class Product(Token):

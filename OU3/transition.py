@@ -1,20 +1,15 @@
 import simulation
 import token_simsims as token
 from enum import Enum, unique
+from GUINodeInterface import GUINodeInterface
 
 
-class Transition():
+class Transition(GUINodeInterface):
     '''Parent class for all transitions.'''
 
     def __init__(self):
         self._tokens = []
-        self._gui_component = None
         self.stop_thread = False
-
-    @property
-    def get_gui_component(self):
-        '''Returns the transition's gui component.'''
-        return self._gui_component
 
     def run(self):
         '''Starts the thread.'''
@@ -23,10 +18,6 @@ class Transition():
     def finish_thread(self):
         '''Sends a signal to the thread to finish. Returns after thread is done.'''
         pass
-
-    def remove_gui_component(self):
-        '''Removes transition gui component from gui.'''
-        simulation.Simulation.gui.rmeove(self._gui_component)
 
     def _get_tokens(self):
         raise NotImplementedError

@@ -1,25 +1,22 @@
 import json
 import token_simsims as token
 import simulation
+from GUINodeInterface import GUINodeInterface
+
 
 # TODO Add locking to add and remove methods for multithreading
 
 
-class Place():
+class Place(GUINodeInterface):
     '''Parent class for all places.'''
 
     def __init__(self):
-        self._gui_component = None
         self._tokens = []
 
     @property
     def get_amount(self):
         '''Returns the number of tokens in the container.'''
         return len(self._tokens)
-
-    @property
-    def get_gui_component(self):
-        return self._gui_component
 
     def add(self, token):
         '''Adds a token to the container.'''
@@ -35,15 +32,8 @@ class Place():
         else:
             raise RuntimeError('Not enough resources')
 
-    def remove_gui_component(self):
-        '''Removes place gui component from gui.'''
-        simulation.Simulation.gui.remove(self._gui_component)
-
     def need_to_adapt(self):
         return self.get_amount < 10 or self.get_amount > 100
-
-    def create_gui_component(self):
-        raise NotImplementedError
 
     def to_dict(self):
         raise NotImplementedError
