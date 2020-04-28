@@ -22,7 +22,6 @@ class Transition(GUINodeInterface, Thread):
         while not self.stop_thread:
             if self._get_tokens():
             self._trigger()
-            simulation.Simulation.gui.update()
             self._release_tokens()
             else:
                 sleep(2)
@@ -69,15 +68,15 @@ class Transition(GUINodeInterface, Thread):
     def to_dict(self):
         raise NotImplementedError
 
-    def from_dict(self, data):
+    def from_dict(self, data, /):
         raise NotImplementedError
 
 
 class Foodcourt(Transition):
-    poisoning_risk = 0.05
-    min_restore = 5
-    max_restore = 25
-    production_time = 1
+    poisoning_risk = 0.01
+    min_restore = 40
+    max_restore = 70
+    production_time = 0.5
 
     def __init__(self):
         super().__init__()
@@ -149,10 +148,17 @@ class Foodcourt(Transition):
 
 
 class Apartment(Transition):
+    health_restore = 20
+    rest_time = 0.7
+
     def __init__(self):
         super().__init__()
         self.create_gui_component()
         self._mode = ApartmentMode.NEUTRAL
+
+    @property
+    def get_mode(self):
+        return self._mode
 
     def create_gui_component(self):
         parameters = {'lable': 'Apartment', 'color': '#000000'}
@@ -204,8 +210,8 @@ class Apartment(Transition):
 
 
 class Farmland(Transition):
-    risk = 0.5
-    health_decrease = 40
+    risk = 0.05
+    health_decrease = 20
     production_time = 1
 
     def __init__(self):
@@ -272,6 +278,12 @@ class Farmland(Transition):
 
 
 class Factory(Transition):
+    base_production_time = 1
+    production_time_multiplier = 0.02
+    death_rate = 0.01
+    min_damage = 5
+    max_damage = 15
+
     def __init__(self):
         super().__init__()
         self.create_gui_component()

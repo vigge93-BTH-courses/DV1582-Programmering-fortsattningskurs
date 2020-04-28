@@ -6,6 +6,8 @@ from GUINodeInterface import GUINodeInterface
 
 class Place(GUINodeInterface):
     '''Parent class for all places.'''
+    min_amount = 10
+    max_amount = 20
 
     def __init__(self):
         GUINodeInterface.__init__(self)
@@ -40,7 +42,7 @@ class Place(GUINodeInterface):
             raise RuntimeError('Not enough resources')
 
     def need_to_adapt(self):
-        return self.get_amount < 10 or self.get_amount > 100
+        return not Place.min_amount <= self.get_amount <= Place.max_amount
 
     def to_dict(self):
         raise NotImplementedError

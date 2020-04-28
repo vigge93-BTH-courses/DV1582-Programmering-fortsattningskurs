@@ -49,7 +49,7 @@ class Simulation(threading.Thread):
 
     def create_gui(self):
         '''Creates a gui class attribute.'''
-        Simulation.gui = simsimsui.SimSimsGUI(w=400, h=400)
+        Simulation.gui = simsimsui.SimSimsGUI(w=1800, h=900)
         Simulation.gui.on_shoot(self.stop)
 
     def update_gui_positions(self):
@@ -95,15 +95,18 @@ class Simulation(threading.Thread):
 
         gui.connect(road_gui, transition_gui, {'arrows': False})
 
-        if type(trans) is transition.Apartment:
-            gui.connect(transition_gui, magazine_gui, {'arrows': True})
-        elif type(trans) is transition.Factory:
-            gui.connect(magazine_gui, transition_gui, {'arrows': True})
-        elif type(trans) is transition.Farmland:
-            gui.connect(shed_gui, transition_gui, {'arrows': True})
-        elif type(trans) is transition.Foodcourt:
-            Simulation.gui.connect(transition_gui, shed_gui, {
-                                   'arrows': True, 'color': '#00AA00'})
+        if isinstance(trans, transition.Apartment):
+            gui.connect(transition_gui, magazine_gui, {
+                        'arrows': False, 'color': '#AA0000'})
+        elif isinstance(trans, transition.Factory):
+            gui.connect(magazine_gui, transition_gui, {
+                        'arrows': False, 'color': '#AA0000'})
+        elif isinstance(trans, transition.Farmland):
+            gui.connect(shed_gui, transition_gui, {
+                        'arrows': False, 'color': '#00AA00'})
+        elif isinstance(trans, transition.Foodcourt):
+            gui.connect(transition_gui, shed_gui, {
+                'arrows': False, 'color': '#00AA00'})
         else:
             raise TypeError
 
@@ -122,9 +125,10 @@ class Simulation(threading.Thread):
 
     def stop(self):
         '''Stops the simulation.'''
-        print('Stop')
+        print('Stopping')
         for transition in self._transitions:
             transition.finish_thread()
+        self._running = False
 
     def adapt(self):
         '''Adds or removes transitions and changes priority of apartments in order to balance the system.'''
@@ -161,5 +165,4 @@ class Simulation(threading.Thread):
                 sim.add_transition(transition.Apartment.from_dict(trans))
             elif trans['type'] == 'factory':
                 sim.add_transition(transition.Factory.from_dict(trans))
-        sim.update_gui()
         return sim
