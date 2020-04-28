@@ -115,13 +115,41 @@ class Simulation(threading.Thread):
         self._shed.release()
         self._magazine.release()
         trans.release()
-        '''Ends transition's process and removes it from the simulation.'''
-        pass
 
-    def start(self):
+        self.update_gui_positions()  # Kör autoplace på alla ui_components
+
+        # Startar processen
+        if self._running:
+            trans.start()
+
+    def remove_transition(self, trans):
+        '''Ends transition's process and removes it from the simulation.'''
+        trans.finish_thread()  # Sätter en flagga för att avsluta processen
+        trans.join()
+
+        Simulation.lock.acquire()
+        trans.lock()
+
+        Simulation.gui.remove(trans.get_gui_component)
+
+        self._transitions.remove(trans)
+
+        trans.release()
+        Simulation.lock.release()
+
+        self.update_gui_positions()
+
+    def run(self):
         '''Starts the simulation.'''
         for trans in self._transitions:
             trans.start()
+        self._running = True
+        while self._running:
+            sleep(5)
+            self.adapt()
+            # _thread.start_new_thread(self.adapt)
+            # print(self.to_dict())
+        print('Simulation stopped')
 
     def stop(self):
         '''Stops the simulation.'''
@@ -132,7 +160,74 @@ class Simulation(threading.Thread):
 
     def adapt(self):
         '''Adds or removes transitions and changes priority of apartments in order to balance the system.'''
-        pass
+        print('\nAdapting:')
+        if self._road.need_to_adapt():
+            # If  there are too few workers, focus on reproduction or add one apartment
+            if self._road.get_amount < place.Place.min_amount:
+                for trans in self._transitions:
+                    if isinstance(trans, transition.Apartment):
+                        if trans.get_mode == transition.ApartmentMode.MULTIPLY:
+                            print('Adding apartment')
+                            apartment = transition.Apartment()
+                            apartment.set_mode(
+                                transition.ApartmentMode.MULTIPLY)
+                            self.add_transition(apartment)
+                            break
+                        print('Changing apartment mode to multiply')
+                        trans.set_mode(transition.ApartmentMode.MULTIPLY)
+            # If there are too many workers, focus on resting or remove one apartment
+            else:
+                for trans in self._transitions:
+                    if isinstance(trans, transition.Apartment):
+                        if trans.get_mode == transition.ApartmentMode.REST:
+                            print('Removing apartment')
+                            self.remove_transition(trans)
+                            break
+                        print('Changing apartment mode to resting')
+                        trans.set_mode(transition.ApartmentMode.REST)
+        # If there are enough workers, return apartments to neutral state.
+        else:
+            for trans in self._transitions:
+                if isinstance(trans, transition.Apartment):
+                    print('Changing apartment mode to neutral')
+                    trans.set_mode(transition.ApartmentMode.NEUTRAL)
+
+        if self._shed.need_to_adapt:
+            # If there are too few food, add a farmland or remove a foodcourt based on amount of workers
+            if self._shed.get_amount < place.Place.min_amount:
+                if self._road.get_amount < place.Place.max_amount:
+                    for trans in self._transitions:
+                        if isinstance(trans, transition.Foodcourt):
+                            print('Removing foodcourt')
+                            self.remove_transition(trans)
+                            break
+                else:
+                    print('Adding farmland')
+                    self.add_transition(transition.Farmland())
+            # If there are too many food, remove a farmland or add a foodcourt randomly
+            else:
+                if random.random() < 0.5:
+                    for trans in self._transitions:
+                        if isinstance(trans, transition.Farmland):
+                            print('Removing farmland')
+                            self.remove_transition(trans)
+                            break
+                else:
+                    print('Adding foodcourt')
+                    self.add_transition(transition.Foodcourt())
+
+        if self._magazine.need_to_adapt:
+            # If there are too many products, remove a factory
+            if self._magazine.get_amount > place.Place.max_amount:
+                for trans in self._transitions:
+                    if isinstance(trans, transition.Factory):
+                        print('Removing factory')
+                        self.remove_transition(trans)
+                        break
+            # If there are too few products, add a factory
+            else:
+                print('Adding factory')
+                self.add_transition(transition.Factory())
 
     def to_dict(self):
         '''Serializes the simulation object to a dictionary.'''
