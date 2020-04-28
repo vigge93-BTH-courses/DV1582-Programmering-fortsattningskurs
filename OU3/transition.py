@@ -21,8 +21,8 @@ class Transition(GUINodeInterface, Thread):
         '''Runs the thread.'''
         while not self.stop_thread:
             if self._get_tokens():
-            self._trigger()
-            self._release_tokens()
+                self._trigger()
+                self._release_tokens()
             else:
                 sleep(2)
         self._release_tokens()
@@ -120,7 +120,7 @@ class Foodcourt(Transition):
             tok.release()
             self.release()
             if isinstance(tok, token.Worker):
-            Arc.store_worker(tok)
+                Arc.store_worker(tok)
             elif isinstance(tok, token.Food):
                 Arc.store_food(tok)
         self._tokens = []
@@ -173,13 +173,42 @@ class Apartment(Transition):
         self._mode = mode
 
     def _get_tokens(self):
-        pass
+        if not self._find_token(token.Product):
+            product = Arc.get_product()
+            if product:
+                self._add_token(product)
+        if not self._find_token(token.Worker):
+            worker_1 = Arc.get_worker()
+            if worker_1:
+                self._add_token(worker_1)
+            if (self._mode == ApartmentMode.NEUTRAL and random.random() < 0.5) or self._mode == ApartmentMode.MULTIPLY:
+                worker_2 = Arc.get_worker()
+                if worker_2:
+                    self._add_token(worker_2)
+        return self._find_token(token.Product) and self._find_token(token.Worker)
 
     def _trigger(self):
-        pass
+        sleep(Apartment.rest_time)
+        if len(self._tokens) == 3:
+            self._add_token(token.Worker())
+        else:
+            self._find_token(token.Worker).increase_health(
+                Apartment.health_restore)
+
+        self._remove_token(self._find_token(token.Product))
 
     def _release_tokens(self):
-        pass
+        for tok in self._tokens:
+            tok.lock()
+            self.lock()
+            self._gui_component.remove_token(tok.get_gui_component)
+            self.release()
+            tok.release()
+            if isinstance(tok, token.Worker):
+                Arc.store_worker(tok)
+            elif isinstance(tok, token.Product):
+                Arc.store_product(tok)
+        self._tokens = []
 
     def to_dict(self):
         data = {'type': 'apartment',
@@ -229,9 +258,9 @@ class Farmland(Transition):
 
     def _get_tokens(self):
         if not self._find_token(token.Worker):
-        worker = Arc.get_worker()
-            if worker:
-        self._add_token(worker)
+            worker = Arc.get_worker()
+        if worker:
+            self._add_token(worker)
         return bool(self._find_token(token.Worker))
 
     def _trigger(self):
@@ -298,13 +327,36 @@ class Factory(Transition):
         self.release()
 
     def _get_tokens(self):
-        pass
+        if not self._find_token(token.Worker):
+            worker = Arc.get_worker()
+            if worker:
+                self._add_token(worker)
+        return bool(self._find_token(token.Worker))
 
     def _trigger(self):
-        pass
+        worker = self._find_token(token.Worker)
+        production_time = Factory.base_production_time + \
+            (token.Worker.max_health - worker.health) * \
+            Factory.production_time_multiplier
+        sleep(production_time)
+        self._add_token(token.Product())
+        worker.decrease_health(random.randint(
+            Factory.min_damage, Factory.max_damage))
+        if random.random() < Factory.death_rate:
+            self._remove_token(worker)
 
     def _release_tokens(self):
-        pass
+        for tok in self._tokens:
+            self.lock()
+            tok.lock()
+            self._gui_component.remove_token(tok.get_gui_component)
+            tok.release()
+            self.release()
+            if isinstance(tok, token.Worker):
+                Arc.store_worker(tok)
+            elif isinstance(tok, token.Product):
+                Arc.store_product(tok)
+        self._tokens = []
 
     def to_dict(self):
         data = {'type': 'factory', 'worker': None, 'products': 0}
