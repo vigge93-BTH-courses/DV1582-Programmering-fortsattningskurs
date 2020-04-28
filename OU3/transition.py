@@ -13,6 +13,7 @@ class Transition(GUINodeInterface, Thread):
 
     def __init__(self):
         Thread.__init__(self)
+        GUINodeInterface.__init__(self)
         self._tokens = []
         self.stop_thread = False
 
@@ -32,14 +33,22 @@ class Transition(GUINodeInterface, Thread):
         '''Sends a signal to the thread to finish. Returns after thread is done.'''
         self.stop_thread = True
 
-    def _add_token(self, token):
+    def _add_token(self, tok, /):
         '''Appends a token to the tokens and adds it to the gui.'''
-        self._gui_component.add_token(token.get_gui_component)
-        self._tokens.append(token)
+        self.lock()
+        tok.lock()
+        self._gui_component.add_token(tok.get_gui_component)
+        self.release()
+        tok.release()
+        self._tokens.append(tok)
 
-    def _remove_token(self, token):
-        self._gui_component.remove_token(token.get_gui_component)
-        self._tokens.remove(token)
+    def _remove_token(self, tok, /):
+        self.lock()
+        tok.lock()
+        self._gui_component.remove_token(tok.get_gui_component)
+        self.release()
+        tok.release()
+        self._tokens.remove(tok)
 
     def _get_tokens(self):
         raise NotImplementedError
@@ -76,8 +85,12 @@ class Foodcourt(Transition):
 
     def create_gui_component(self):
         parameters = {'lable': 'Foodcourt', 'color': '#00FF00'}
+        self.lock()
+        simulation.Simulation.lock.acquire()
         self._gui_component = simulation.Simulation.gui.create_transition_ui(
             parameters)
+        simulation.Simulation.lock.release()
+        self.release()
 
     def _get_tokens(self):
         if not self._find_token(token.Worker):
@@ -101,9 +114,12 @@ class Foodcourt(Transition):
         self._remove_token(self._find_token(token.Food))
 
     def _release_tokens(self):
-        sleep(Arc.transport_time)
         for tok in self._tokens:
+            self.lock()
+            tok.lock()
             self._gui_component.remove_token(tok.get_gui_component)
+            tok.release()
+            self.release()
             if isinstance(tok, token.Worker):
             Arc.store_worker(tok)
             elif isinstance(tok, token.Food):
@@ -140,8 +156,12 @@ class Apartment(Transition):
 
     def create_gui_component(self):
         parameters = {'lable': 'Apartment', 'color': '#000000'}
+        self.lock()
+        simulation.Simulation.lock.acquire()
         self._gui_component = simulation.Simulation.gui.create_transition_ui(
             parameters)
+        simulation.Simulation.lock.release()
+        self.release()
 
     def set_mode(self, mode):
         self._mode = mode
@@ -194,8 +214,12 @@ class Farmland(Transition):
 
     def create_gui_component(self):
         parameters = {'lable': 'Farmland', 'color': '#9C7200'}
+        self.lock()
+        simulation.Simulation.lock.acquire()
         self._gui_component = simulation.Simulation.gui.create_transition_ui(
             parameters)
+        simulation.Simulation.lock.release()
+        self.release()
 
     def _get_tokens(self):
         if not self._find_token(token.Worker):
@@ -213,9 +237,12 @@ class Farmland(Transition):
                 Farmland.health_decrease)
 
     def _release_tokens(self):
-        sleep(Arc.transport_time)
         for tok in self._tokens:
+            self.lock()
+            tok.lock()
             self._gui_component.remove_token(tok.get_gui_component)
+            tok.release()
+            self.release()
             if isinstance(tok, token.Worker):
                 Arc.store_worker(tok)
             elif isinstance(tok, token.Food):
@@ -251,8 +278,12 @@ class Factory(Transition):
 
     def create_gui_component(self):
         parameters = {'lable': 'Factory', 'color': '#ADADAD'}
+        self.lock()
+        simulation.Simulation.lock.acquire()
         self._gui_component = simulation.Simulation.gui.create_transition_ui(
             parameters)
+        simulation.Simulation.lock.release()
+        self.release()
 
     def _get_tokens(self):
         pass

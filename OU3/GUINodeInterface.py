@@ -1,4 +1,5 @@
 import simulation
+from threading import Lock
 
 
 class GUINodeInterface():
@@ -6,6 +7,13 @@ class GUINodeInterface():
 
     def __init__(self):
         self._gui_component = None
+        self._lock = Lock()
+
+    def lock(self):
+        self._lock.acquire()
+
+    def release(self):
+        self._lock.release()
 
     @property
     def get_gui_component(self):
@@ -14,11 +22,16 @@ class GUINodeInterface():
 
     def remove_gui_component(self):
         '''Removes gui component from gui.'''
+        self._lock.acquire()
         if self._gui_component:
-            simulation.Simulation.gui.remove(self._gui_component)
+            simulation.Simulation.gui.remove(self.get_gui_component)
+        self._lock.release()
 
     def create_gui_component(self):
         raise NotImplementedError
 
     def __del__(self):
+        print(f'Destroying {self} and removing {self._gui_component}')
+        self._lock.acquire()
         simulation.Simulation.gui.remove(self._gui_component)
+        self._lock.release()

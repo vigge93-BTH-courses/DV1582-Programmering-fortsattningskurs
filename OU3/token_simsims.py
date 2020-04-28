@@ -5,7 +5,9 @@ from GUINodeInterface import GUINodeInterface
 
 class Token(GUINodeInterface):
     '''Parent class for all tokens.'''
-    pass
+
+    def __init__(self):
+        GUINodeInterface.__init__(self)
 
 
 class Product(Token):
@@ -18,8 +20,12 @@ class Product(Token):
     def create_gui_component(self):
         '''Creates a red token gui component and adds it to the gui.'''
         properties = {'color': '#ff0000'}
+        self.lock()
+        simulation.Simulation.lock.acquire()
         self._gui_component = simulation.Simulation.gui.create_token_ui(
             properties)
+        self.release()
+        simulation.Simulation.lock.release()
 
 
 class Food(Token):
@@ -32,8 +38,12 @@ class Food(Token):
     def create_gui_component(self):
         '''Creates a green token gui component and adds it to the gui.'''
         properties = {'color': '#00ff00'}
+        self.lock()
+        simulation.Simulation.lock.acquire()
         self._gui_component = simulation.Simulation.gui.create_token_ui(
             properties)
+        simulation.Simulation.lock.release()
+        self.release()
 
 
 class Worker(Token):
@@ -62,8 +72,12 @@ class Worker(Token):
     def create_gui_component(self):
         '''Creates a red token gui component and adds it to the gui.'''
         properties = {'color': '#000000'}
+        self.lock()
+        simulation.Simulation.lock.acquire()
         self._gui_component = simulation.Simulation.gui.create_token_ui(
             properties)
+        simulation.Simulation.lock.release()
+        self.release()
 
     def decrease_health(self, amount):
         '''Removes health from worker and returns True if workers health drops to or below 0.'''

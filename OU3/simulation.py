@@ -1,18 +1,25 @@
 import simsimsui
 import place
 import transition
+import threading
+from time import sleep
+import random
+import _thread
 
 
-class Simulation():
+class Simulation(threading.Thread):
     '''The class that manages the simulation and keeps track of all objects in the simulation.'''
     gui = None
+    lock = threading.Lock()
 
     def __init__(self, initial_workers=0):
+        threading.Thread.__init__(self)
         self.create_gui()
         self._road = place.Road(initial_workers)
         self._shed = place.Shed()
         self._magazine = place.Magazine()
         self._transitions = []
+        self._running = False
 
     @property
     def get_road(self):
@@ -34,24 +41,50 @@ class Simulation():
     # def get_gui(cls):
     #     return cls._gui
 
+    @classmethod
+    def update_gui(cls):
+        cls.lock.acquire()
+        cls.gui.update()
+        cls.lock.release()
+
     def create_gui(self):
         '''Creates a gui class attribute.'''
         Simulation.gui = simsimsui.SimSimsGUI(w=400, h=400)
         Simulation.gui.on_shoot(self.stop)
 
-    def update_gui(self):
+    def update_gui_positions(self):
         '''Updates position of all gui elements.'''
-        num_of_gui_objects = len(self._transitions) + 3
-        self._road.get_gui_component.autoplace(0, num_of_gui_objects)
-        self._shed.get_gui_component.autoplace(1, num_of_gui_objects)
-        self._magazine.get_gui_component.autoplace(2, num_of_gui_objects)
-        for idx, transition in enumerate(self._transitions):
-            transition.get_gui_component.autoplace(idx + 3, num_of_gui_objects)
-        Simulation.gui.update()
+        Simulation.lock.acquire()
 
-    # TODO Start process
+        num_of_gui_objects = len(self._transitions) + 3
+
+        self._road.lock()
+        self._road.get_gui_component.autoplace(0, num_of_gui_objects)
+        self._road.release()
+
+        self._shed.lock()
+        self._shed.get_gui_component.autoplace(1, num_of_gui_objects)
+        self._shed.release()
+
+        self._magazine.lock()
+        self._magazine.get_gui_component.autoplace(2, num_of_gui_objects)
+        self._magazine.release()
+
+        for idx, trans in enumerate(self._transitions):
+            trans.lock()
+            trans.get_gui_component.autoplace(idx + 3, num_of_gui_objects)
+            trans.release()
+
+        Simulation.lock.release()
+
     def add_transition(self, trans):
-        '''Adds a transition to the simulation and starts its process.'''
+        '''Adds a transition to the simulation and starts its process if the simulation is running.'''
+        Simulation.lock.acquire()
+        self._road.lock()
+        self._shed.lock()
+        self._magazine.lock()
+        trans.lock()
+
         self._transitions.append(trans)
 
         gui = Simulation.gui
@@ -74,7 +107,11 @@ class Simulation():
         else:
             raise TypeError
 
-    def remove_transition(self, transition):
+        Simulation.lock.release()
+        self._road.release()
+        self._shed.release()
+        self._magazine.release()
+        trans.release()
         '''Ends transition's process and removes it from the simulation.'''
         pass
 

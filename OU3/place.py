@@ -4,13 +4,11 @@ import simulation
 from GUINodeInterface import GUINodeInterface
 
 
-# TODO Add locking to add and remove methods for multithreading
-
-
 class Place(GUINodeInterface):
     '''Parent class for all places.'''
 
     def __init__(self):
+        GUINodeInterface.__init__(self)
         self._tokens = []
 
     @property
@@ -21,13 +19,21 @@ class Place(GUINodeInterface):
     def add(self, token):
         '''Adds a token to the container.'''
         self._tokens.append(token)
+        token.lock()
+        self.lock()
         self._gui_component.add_token(token.get_gui_component)
+        self.release()
+        token.release()
 
     def remove(self):
         '''Removes and returns the first token in the container.'''
         if len(self._tokens) > 0:
             token = self._tokens[0]
+            token.lock()
+            self.lock()
             self._gui_component.remove_token(token.get_gui_component)
+            self.release()
+            token.release()
             self._tokens = self._tokens[1:]
             return token
         else:
@@ -54,8 +60,12 @@ class Shed(Place):
     def create_gui_component(self):
         '''Creates a green shed gui components and adds it to gui.'''
         properties = {'lable': 'Shed', 'color': '#00ff00'}
+        self.lock()
+        simulation.Simulation.lock.acquire()
         self._gui_component = simulation.Simulation.gui.create_place_ui(
             properties)
+        simulation.Simulation.lock.release()
+        self.release()
 
     def to_dict(self):
         '''Serializes shed to a dictionary.'''
@@ -67,7 +77,6 @@ class Shed(Place):
         shed = cls()
         for _ in range(data['food']):
             food = token.Food()
-            shed.get_gui_component.add_token(food.get_gui_component)
             shed.add(food)
         return shed
 
@@ -82,8 +91,12 @@ class Magazine(Place):
     def create_gui_component(self):
         '''Creates a red magazine gui components and adds it to gui.'''
         properties = {'lable': 'Magazine', 'color': '#ff0000'}
+        self.lock()
+        simulation.Simulation.lock.acquire()
         self._gui_component = simulation.Simulation.gui.create_place_ui(
             properties)
+        simulation.Simulation.lock.release()
+        self.release()
 
     def to_dict(self):
         '''Serializes magazine to a dictionary.'''
@@ -95,7 +108,6 @@ class Magazine(Place):
         magazine = cls()
         for _ in range(data['product']):
             product = token.Product()
-            magazine.get_gui_component.add_token(product.get_gui_component)
             magazine.add(product)
         return magazine
 
@@ -119,8 +131,12 @@ class Road(Place):
     def create_gui_component(self):
         '''Creates a black road gui components and adds it to gui.'''
         properties = {'lable': 'Road', 'color': '#000000'}
+        self.lock()
+        simulation.Simulation.lock.acquire()
         self._gui_component = simulation.Simulation.gui.create_place_ui(
             properties)
+        simulation.Simulation.lock.release()
+        self.release()
 
     def to_dict(self):
         '''Serializes road to a dictionary.'''
@@ -133,5 +149,10 @@ class Road(Place):
         for worker in data['workers']:
             worker = token.Worker.from_dict(worker)
             road._tokens.append(worker)
+            worker.lock()
+            road.lock()
             road.get_gui_component.add_token(worker.get_gui_component)
+            road.release()
+            worker.release()
+
         return road
