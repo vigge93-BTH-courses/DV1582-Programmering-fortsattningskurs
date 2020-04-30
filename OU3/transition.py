@@ -1,15 +1,16 @@
-import simulation
-import token_simsims as token
 from enum import Enum, unique
-from GUINodeInterface import GUINodeInterface
-from arc import Arc
 import random
 from time import sleep
 from threading import Thread
 
+import simulation
+import token_simsims as token
+from gui_node_interface import GUINodeInterface
+from arc import Arc
+
 
 class Transition(GUINodeInterface, Thread):
-    '''Parent class for all transitions.'''
+    """Parent class for all transitions."""
 
     def __init__(self):
         Thread.__init__(self)
@@ -18,7 +19,7 @@ class Transition(GUINodeInterface, Thread):
         self._stop_thread = False
 
     def run(self):
-        '''Runs the thread.'''
+        """Runs the thread."""
         while not self._stop_thread:
             if self._get_tokens():
                 self._trigger()
@@ -26,37 +27,38 @@ class Transition(GUINodeInterface, Thread):
             else:
                 sleep(2)
         self._release_tokens()
-        print('thread closed')
+        print('Thread closed')
 
     def finish_thread(self):
-        '''Sends a signal to the thread to finish.'''
+        """Sets a flag for the thread to finish."""
         self._stop_thread = True
 
-    def _add_token(self, tok, /):
-        '''Appends a token to the tokens and adds it to the gui.'''
+    def _add_token(self, token_, /):
+        """Appends a token to the tokens and adds it to the gui."""
         self.lock()
-        tok.lock()
-        self._gui_component.add_token(tok.get_gui_component)
+        token_.lock()
+        self._gui_component.add_token(token_.get_gui_component)
+        self._tokens.append(token_)
         self.release()
-        tok.release()
-        self._tokens.append(tok)
+        token_.release()
 
-    def _remove_token(self, tok, /):
+    def _remove_token(self, token_, /):
+        """Removes a token and it's gui component."""
         self.lock()
-        tok.lock()
-        self._gui_component.remove_token(tok.get_gui_component)
+        token_.lock()
+        self._gui_component.remove_token(token_.get_gui_component)
+        self._tokens.remove(token_)
         self.release()
-        tok.release()
-        self._tokens.remove(tok)
+        token_.release()
 
     def _get_tokens(self):
         raise NotImplementedError
 
-    def _find_token(self, tpe, /):
-        '''Returns the first token of type tpe.'''
-        for tok in self._tokens:
-            if isinstance(tok, tpe):
-                return tok
+    def _find_token(self, type_, /):
+        """Returns the first token of type type_. Returns None if no token is found."""
+        for token_ in self._tokens:
+            if isinstance(token_, type_):
+                return token_
         return None
 
     def _trigger(self):
@@ -69,11 +71,12 @@ class Transition(GUINodeInterface, Thread):
         raise NotImplementedError
 
     @classmethod
-    def from_dict(self, data, /):
+    def from_dict(self, data):
         raise NotImplementedError
 
 
 class Foodcourt(Transition):
+    """Foodcourt type transition. Heals workers and consumes food."""
     poisoning_risk = 0.01
     min_restore = 40
     max_restore = 70
@@ -84,6 +87,7 @@ class Foodcourt(Transition):
         self.create_gui_component()
 
     def create_gui_component(self):
+        """Creates a green transition gui component."""
         parameters = {'lable': 'Foodcourt', 'color': '#00FF00'}
         self.lock()
         simulation.Simulation.lock.acquire()
@@ -93,6 +97,7 @@ class Foodcourt(Transition):
         self.release()
 
     def _get_tokens(self):
+        """Fetches one worker and one food."""
         if not self._find_token(token.Worker):
             worker = Arc.get_worker()
             if worker:
@@ -104,51 +109,61 @@ class Foodcourt(Transition):
         return self._find_token(token.Worker) and self._find_token(token.Food)
 
     def _trigger(self):
+        """Consumes one food and heals or poisons worker."""
         sleep(Foodcourt.production_time)
+
         health_diff = random.randint(
             Foodcourt.min_restore, Foodcourt.max_restore)
+
         if random.random() < Foodcourt.poisoning_risk:
             self._find_token(token.Worker).decrease_health(health_diff)
         else:
-            self._find_token(token.Worker).increase_health(health_diff//10)
+            self._find_token(token.Worker).increase_health(health_diff//5)
+
         self._remove_token(self._find_token(token.Food))
 
     def _release_tokens(self):
-        for tok in self._tokens:
+        """Returns tokens to their places."""
+        for token_ in self._tokens:
             self.lock()
-            tok.lock()
-            self._gui_component.remove_token(tok.get_gui_component)
-            tok.release()
+            token_.lock()
+            self._gui_component.remove_token(token_.get_gui_component)
+            token_.release()
             self.release()
-            if isinstance(tok, token.Worker):
-                Arc.store_worker(tok)
-            elif isinstance(tok, token.Food):
-                Arc.store_food(tok)
+            if isinstance(token_, token.Worker):
+                Arc.store_worker(token_)
+            elif isinstance(token_, token.Food):
+                Arc.store_food(token_)
         self._tokens = []
 
     def to_dict(self):
-        data = {'type': 'foodcourt', 'worker': None, 'food': 0}
-        for tok in self._tokens:
-            if isinstance(tok, token.Food):
+        """Serializes foodcourt to a dictionary."""
+        data = {
+            'type': 'foodcourt',
+            'worker': None,
+            'food': 0,
+        }
+        for token_ in self._tokens:
+            if isinstance(token_, token.Food):
                 data['food'] += 1
             else:
-                data['worker'] = tok.to_dict()
+                data['worker'] = token_.to_dict()
         return data
 
     @classmethod
     def from_dict(cls, data):
+        """Creates a foodcourt from a dicitonary."""
         foodcourt = cls()
         if data['worker']:
-            worker = token.Worker.from_dict(data['worker'])
-            foodcourt._add_token(worker)
+            foodcourt._add_token(token.Worker.from_dict(data['worker']))
 
         for _ in range(data['food']):
-            food = token.Food()
-            foodcourt._add_token(food)
+            foodcourt._add_token(token.Food())
         return foodcourt
 
 
 class Apartment(Transition):
+    """Apartment type transition. Heals or creates workers and consumes products."""
     health_restore = 20
     rest_time = 0.7
 
@@ -159,9 +174,11 @@ class Apartment(Transition):
 
     @property
     def get_mode(self):
+        """Returns current mode of apartment."""
         return self._mode
 
     def create_gui_component(self):
+        """Creates a black transition gui component."""
         parameters = {'lable': 'Apartment', 'color': '#000000'}
         self.lock()
         simulation.Simulation.lock.acquire()
@@ -171,9 +188,11 @@ class Apartment(Transition):
         self.release()
 
     def set_mode(self, mode):
+        """Sets the mode of the apartment."""
         self._mode = mode
 
     def _get_tokens(self):
+        """Fetches one product and one or two workers."""
         if not self._find_token(token.Product):
             product = Arc.get_product()
             if product:
@@ -189,6 +208,7 @@ class Apartment(Transition):
         return self._find_token(token.Product) and self._find_token(token.Worker)
 
     def _trigger(self):
+        """If apartment has one worker, heal it. If apartment has two workers, create a third worker. Consumes the product."""
         sleep(Apartment.rest_time)
         if len(self._tokens) == 3:
             self._add_token(token.Worker())
@@ -199,47 +219,49 @@ class Apartment(Transition):
         self._remove_token(self._find_token(token.Product))
 
     def _release_tokens(self):
-        for tok in self._tokens:
-            tok.lock()
+        """Returns all tokens to their places."""
+        for token_ in self._tokens:
+            token_.lock()
             self.lock()
-            self._gui_component.remove_token(tok.get_gui_component)
+            self._gui_component.remove_token(token_.get_gui_component)
             self.release()
-            tok.release()
-            if isinstance(tok, token.Worker):
-                Arc.store_worker(tok)
-            elif isinstance(tok, token.Product):
-                Arc.store_product(tok)
+            token_.release()
+            if isinstance(token_, token.Worker):
+                Arc.store_worker(token_)
+            elif isinstance(token_, token.Product):
+                Arc.store_product(token_)
         self._tokens = []
 
     def to_dict(self):
+        """Serializes apartment to a dictionary."""
         data = {'type': 'apartment',
                 'workers': [],
                 'products': 0,
-                'mode': self._mode.value
+                'mode': self._mode.value,
                 }
-        for tok in self._tokens:
-            if isinstance(tok, token.Product):
+        for token_ in self._tokens:
+            if isinstance(token_, token.Product):
                 data['products'] += 1
             else:
-                data['workers'].append(tok.to_dict())
+                data['workers'].append(token_.to_dict())
         return data
 
     @classmethod
     def from_dict(cls, data):
+        """Creates an apartment from a dictionary."""
         apartment = cls()
         for worker in data['workers']:
-            worker = token.Worker.from_dict(worker)
-            apartment._add_token(worker)
+            apartment._add_token(token.Worker.from_dict(worker))
 
         for _ in range(data['products']):
-            product = token.Product()
-            apartment._add_token(product)
+            apartment._add_token(token.Product())
 
         apartment._mode = ApartmentMode(data['mode'])
         return apartment
 
 
 class Farmland(Transition):
+    """Farmland type transition. Produces food."""
     risk = 0.05
     health_decrease = 20
     production_time = 1
@@ -249,6 +271,7 @@ class Farmland(Transition):
         self.create_gui_component()
 
     def create_gui_component(self):
+        """Creates a brown transition gui component."""
         parameters = {'lable': 'Farmland', 'color': '#9C7200'}
         self.lock()
         simulation.Simulation.lock.acquire()
@@ -258,6 +281,7 @@ class Farmland(Transition):
         self.release()
 
     def _get_tokens(self):
+        """Fetches a worker."""
         if not self._find_token(token.Worker):
             worker = Arc.get_worker()
             if worker:
@@ -265,6 +289,7 @@ class Farmland(Transition):
         return bool(self._find_token(token.Worker))
 
     def _trigger(self):
+        """Produces one food and has a risk of damaging the worker."""
         sleep(Farmland.production_time)
         food = token.Food()
         self._add_token(food)
@@ -273,41 +298,47 @@ class Farmland(Transition):
                 Farmland.health_decrease)
 
     def _release_tokens(self):
-        for tok in self._tokens:
+        """Returns all tokens to their places"""
+        for token_ in self._tokens:
             self.lock()
-            tok.lock()
-            self._gui_component.remove_token(tok.get_gui_component)
-            tok.release()
+            token_.lock()
+            self._gui_component.remove_token(token_.get_gui_component)
+            token_.release()
             self.release()
-            if isinstance(tok, token.Worker):
-                Arc.store_worker(tok)
-            elif isinstance(tok, token.Food):
-                Arc.store_food(tok)
+            if isinstance(token_, token.Worker):
+                Arc.store_worker(token_)
+            elif isinstance(token_, token.Food):
+                Arc.store_food(token_)
         self._tokens = []
 
     def to_dict(self):
-        data = {'type': 'farmland', 'worker': None, 'food': 0}
-        for tok in self._tokens:
-            if isinstance(tok, token.Food):
+        """Serializes farmland to a dictionary."""
+        data = {
+            'type': 'farmland',
+            'worker': None,
+            'food': 0,
+        }
+        for token_ in self._tokens:
+            if isinstance(token_, token.Food):
                 data['food'] += 1
             else:
-                data['worker'] = tok.to_dict()
+                data['worker'] = token_.to_dict()
         return data
 
     @classmethod
     def from_dict(cls, data):
+        """Creates a farmland from a dictionary."""
         farmland = cls()
         if data['worker']:
-            worker = token.Worker.from_dict(data['worker'])
-            farmland._add_token(worker)
+            farmland._add_token(token.Worker.from_dict(data['worker']))
 
         for _ in range(data['food']):
-            food = token.Food()
-            farmland._add_token(food)
+            farmland._add_token(token.Food())
         return farmland
 
 
 class Factory(Transition):
+    """Factory type transition. Produces products."""
     base_production_time = 1
     production_time_multiplier = 0.02
     death_rate = 0.01
@@ -319,6 +350,7 @@ class Factory(Transition):
         self.create_gui_component()
 
     def create_gui_component(self):
+        """Creates a red transition gui component."""
         parameters = {'lable': 'Factory', 'color': '#ADADAD'}
         self.lock()
         simulation.Simulation.lock.acquire()
@@ -328,6 +360,7 @@ class Factory(Transition):
         self.release()
 
     def _get_tokens(self):
+        """Fetches a worker."""
         if not self._find_token(token.Worker):
             worker = Arc.get_worker()
             if worker:
@@ -335,10 +368,13 @@ class Factory(Transition):
         return bool(self._find_token(token.Worker))
 
     def _trigger(self):
+        """Produces one product. Production time depends on workers health.
+        Reduces worker's health and has a small risk of killing it.
+        """
         worker = self._find_token(token.Worker)
-        production_time = Factory.base_production_time + \
-            (token.Worker.max_health - worker.health) * \
-            Factory.production_time_multiplier
+        production_time = (Factory.base_production_time
+                           + (token.Worker.max_health - worker.health)
+                           * Factory.production_time_multiplier)
         sleep(production_time)
         self._add_token(token.Product())
         worker.decrease_health(random.randint(
@@ -347,37 +383,41 @@ class Factory(Transition):
             self._remove_token(worker)
 
     def _release_tokens(self):
-        for tok in self._tokens:
+        """Returns tokens to their places."""
+        for token_ in self._tokens:
             self.lock()
-            tok.lock()
-            self._gui_component.remove_token(tok.get_gui_component)
-            tok.release()
+            token_.lock()
+            self._gui_component.remove_token(token_.get_gui_component)
+            token_.release()
             self.release()
-            if isinstance(tok, token.Worker):
-                Arc.store_worker(tok)
-            elif isinstance(tok, token.Product):
-                Arc.store_product(tok)
+            if isinstance(token_, token.Worker):
+                Arc.store_worker(token_)
+            elif isinstance(token_, token.Product):
+                Arc.store_product(token_)
         self._tokens = []
 
     def to_dict(self):
-        data = {'type': 'factory', 'worker': None, 'products': 0}
-        for tok in self._tokens:
-            if isinstance(tok, token.Product):
+        """Serializes factory to a dictionary."""
+        data = {
+            'type': 'factory',
+            'worker': None,
+            'products': 0,
+        }
+        for token_ in self._tokens:
+            if isinstance(token_, token.Product):
                 data['products'] += 1
             else:
-                data['worker'] = tok.to_dict()
+                data['worker'] = token_.to_dict()
         return data
 
     @classmethod
     def from_dict(cls, data):
         factory = cls()
         if data['worker']:
-            worker = token.Worker.from_dict(data['worker'])
-            factory._add_token(worker)
+            factory._add_token(token.Worker.from_dict(data['worker']))
 
         for _ in range(data['products']):
-            product = token.Product()
-            factory._add_token(product)
+            factory._add_token(token.Product())
         return factory
 
 

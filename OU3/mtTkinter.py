@@ -63,7 +63,7 @@ else:
 class _Tk(object):
     """Wrapper for underlying attribute tk of class Tk"""
 
-    def __init__(self, tk, mt_debug=0, mt_check_period=10):
+    def __init__(self, tk, mt_debug=0, mt_check_period=2):
         """
         :param tk: Tkinter.Tk.tk Tk interpreter object
         :param mt_debug: Determines amount of debug output.
@@ -83,7 +83,7 @@ class _Tk(object):
         self._tk = tk
 
         # Create the incoming event queue
-        self._event_queue = queue.Queue(1)
+        self._event_queue = queue.Queue(2)
 
         # Identify the thread from which this object is being created
         # so we can tell later whether an event is coming from another
