@@ -7,7 +7,13 @@ class GUINodeInterface():
 
     def __init__(self):
         self._gui_component = None
+
         self._lock = Lock()
+
+    def __del__(self):
+        self._lock.acquire()
+        simulation.Simulation.gui.remove(self._gui_component)
+        self._lock.release()
 
     def lock(self):
         self._lock.acquire()
@@ -29,9 +35,3 @@ class GUINodeInterface():
 
     def create_gui_component(self):
         raise NotImplementedError
-
-    def __del__(self):
-        print(f'Destroying {self} and removing {self._gui_component}')
-        self._lock.acquire()
-        simulation.Simulation.gui.remove(self._gui_component)
-        self._lock.release()

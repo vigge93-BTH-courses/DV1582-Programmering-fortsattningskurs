@@ -1,24 +1,16 @@
 import simsimsui
 import simulation
 import arc
-import json
 import transition
 import sys
+import json
+
 
 if __name__ == "__main__":
     sim = simulation.Simulation(10)
-
-    # sim.add_transition(transition.Farmland())
-    # sim.add_transition(transition.Farmland())
-    # sim.add_transition(transition.Farmland())
-    # sim.add_transition(transition.Foodcourt())
-    # sim.add_transition(transition.Foodcourt())
-    # sim.add_transition(transition.Factory())
-    # sim.add_transition(transition.Factory())
-    # sim.add_transition(transition.Factory())
-    # sim.add_transition(transition.Apartment())
-    # sim.add_transition(transition.Apartment())
-
+    # f = open('sim.json', 'r+', encoding='utf-8')
+    # sim_str = f.read()
+    # sim = simulation.Simulation.from_dict(json.loads(sim_str))
     arc.Arc.set_simulation(sim)
 
     sim.start()

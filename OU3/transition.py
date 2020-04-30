@@ -15,11 +15,11 @@ class Transition(GUINodeInterface, Thread):
         Thread.__init__(self)
         GUINodeInterface.__init__(self)
         self._tokens = []
-        self.stop_thread = False
+        self._stop_thread = False
 
     def run(self):
         '''Runs the thread.'''
-        while not self.stop_thread:
+        while not self._stop_thread:
             if self._get_tokens():
                 self._trigger()
                 self._release_tokens()
@@ -29,8 +29,8 @@ class Transition(GUINodeInterface, Thread):
         print('thread closed')
 
     def finish_thread(self):
-        '''Sends a signal to the thread to finish. Returns after thread is done.'''
-        self.stop_thread = True
+        '''Sends a signal to the thread to finish.'''
+        self._stop_thread = True
 
     def _add_token(self, tok, /):
         '''Appends a token to the tokens and adds it to the gui.'''
@@ -68,6 +68,7 @@ class Transition(GUINodeInterface, Thread):
     def to_dict(self):
         raise NotImplementedError
 
+    @classmethod
     def from_dict(self, data, /):
         raise NotImplementedError
 
@@ -259,8 +260,8 @@ class Farmland(Transition):
     def _get_tokens(self):
         if not self._find_token(token.Worker):
             worker = Arc.get_worker()
-        if worker:
-            self._add_token(worker)
+            if worker:
+                self._add_token(worker)
         return bool(self._find_token(token.Worker))
 
     def _trigger(self):

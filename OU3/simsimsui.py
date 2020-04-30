@@ -1,9 +1,10 @@
-import mtTkinter
-from tkinter import font
+from tkinter import Tk, Canvas, CENTER, LAST, BOTH, font
 from math import sqrt, sin, cos, pi
 from copy import deepcopy, copy
 import io
 import sys
+
+''' A text and graphical user iterface for a SImSims network '''
 
 
 class Coords():
@@ -281,9 +282,10 @@ class UINodeComponent(UIComponent):
         pass
 
     def shoot(self):
-        for arc in self._arcs:
+        for arc in copy(self._arcs):
             arc._in._arcs.remove(arc)
             arc._out._arcs.remove(arc)
+
             arc.shoot()
         UIComponent.shoot(self)
         self._tokens.clear()
@@ -369,18 +371,18 @@ class TextUITokenDrawer(UIDrawer):
         self._fout.write("*")
 
 
-class SimSimsGUI(mtTkinter.Tk, SimSimsUI):
+class SimSimsGUI(Tk, SimSimsUI):
     ''' A Graphical UI. '''
 
     def __init__(self, w=400, h=400):
-        mtTkinter.Tk.__init__(self)
+        Tk.__init__(self)
 
         self.protocol("WM_DELETE_WINDOW", self._shoot)
         # make Esc exit the program
         self.bind('<Escape>', lambda e: self._shoot())
 
         SimSimsUI.__init__(self)
-        self._canvas = mtTkinter.Canvas(self, width=w, height=h)
+        self._canvas = Canvas(self, width=w, height=h)
         self._canvas.pack()
         self.update()
 
@@ -404,7 +406,7 @@ class SimSimsGUI(mtTkinter.Tk, SimSimsUI):
     def _shoot(self):
         ''' Overrides from SimSimsUI '''
         SimSimsUI._shoot(self)
-        mtTkinter.Tk.iconify(self)
+        Tk.iconify(self)
 
     def update_ui(self):
         ''' Overrides from TokenUI '''
@@ -415,7 +417,7 @@ class SimSimsGUI(mtTkinter.Tk, SimSimsUI):
 
     def shoot(self):
         ''' Overrides from SimSimsUI. '''
-        mtTkinter.Tk.destroy(self)
+        Tk.destroy(self)
 
 
 class GUINodeComponent(UINodeComponent):
@@ -613,7 +615,7 @@ class GUIPlaceDrawer(GUINodeDrawer):
         self.shapes.append((shape, coords))
         if "lable" in self.properties.keys():
             shape = self.canvas.create_text(
-                0.0, 0.0, text=self.properties["lable"], font=self._font, justify=mtTkinter.CENTER, fill=self.properties["color"])
+                0.0, 0.0, text=self.properties["lable"], font=self._font, justify=CENTER, fill=self.properties["color"])
             coords = Coords(0.0, self._radius+7)
             self.shapes.append((shape, coords))
 
@@ -648,7 +650,7 @@ class GUITransitionDrawer(GUINodeDrawer):
         self._shapes.append((shape, coords, self.properties))
         if "lable" in self.properties.keys():
             shape = self.canvas.create_text(
-                0.0, 0.0, text=self.properties["lable"], font=self._font, justify=mtTkinter.CENTER, fill=self.properties["color"])
+                0.0, 0.0, text=self.properties["lable"], font=self._font, justify=CENTER, fill=self.properties["color"])
             coords = Coords(0.0, self._radius+7)
             self.shapes.append((shape, coords))
 
@@ -691,9 +693,9 @@ class GUIArcDrawer(GUIDrawer):
         if not self.properties["arrows"]:
             return
         if b:
-            self.canvas.itemconfig(self._shapes[0][0], arrow=mtTkinter.BOTH)
+            self.canvas.itemconfig(self._shapes[0][0], arrow=BOTH)
         else:
-            self.canvas.itemconfig(self._shapes[0][0], arrow=mtTkinter.LAST)
+            self.canvas.itemconfig(self._shapes[0][0], arrow=LAST)
         self._bidirectional = b
 
     def _define(self):
@@ -702,10 +704,10 @@ class GUIArcDrawer(GUIDrawer):
         coord2 = Coords(0.0, 0.0)
         arrow = None
         if self.properties["arrows"]:
-            arrow = mtTkinter.LAST
+            arrow = LAST
         s = self.canvas.create_line(
             coord1[0], coord1[1], coord2[0], coord2[1], fill=self.properties["color"], width=3, arrow=arrow)
-        self.shapes.append((s, None, self.properties))
+        self.shapes.append((s, None))
 
     def _verify_properties(self, properties):
         ''' Override from UIDrawer '''
@@ -721,3 +723,9 @@ class GUIArcDrawer(GUIDrawer):
 
         s = self.shapes[0][0]
         self.canvas.coords(s, coords[:])
+
+
+__author__ = 'Pedher Johansson'
+__copyright__ = 'Copyright 2020, FortsÃ¤ttningskurs i Python'
+__version__ = '1.2'
+__email__ = 'pedher.johansson@bth.se'
