@@ -99,12 +99,10 @@ class Foodcourt(Transition):
     def _get_tokens(self):
         """Fetches one worker and one food."""
         if not self._find_token(token.Worker):
-            worker = Arc.get_worker()
-            if worker:
+            if (worker := Arc.get_worker()):
                 self._add_token(worker)
         if not self._find_token(token.Food):
-            food = Arc.get_food()
-            if food:
+            if (food := Arc.get_food()):
                 self._add_token(food)
         return self._find_token(token.Worker) and self._find_token(token.Food)
 
@@ -194,17 +192,14 @@ class Apartment(Transition):
     def _get_tokens(self):
         """Fetches one product and one or two workers."""
         if not self._find_token(token.Product):
-            product = Arc.get_product()
-            if product:
+            if (product := Arc.get_product()):
                 self._add_token(product)
         if not self._find_token(token.Worker):
-            worker_1 = Arc.get_worker()
-            if worker_1:
-                self._add_token(worker_1)
+            if (worker := Arc.get_worker()):
+                self._add_token(worker)
             if (self._mode == ApartmentMode.NEUTRAL and random.random() < 0.5) or self._mode == ApartmentMode.MULTIPLY:
-                worker_2 = Arc.get_worker()
-                if worker_2:
-                    self._add_token(worker_2)
+                if (worker := Arc.get_worker()):
+                    self._add_token(worker)
         return self._find_token(token.Product) and self._find_token(token.Worker)
 
     def _trigger(self):
@@ -283,8 +278,7 @@ class Farmland(Transition):
     def _get_tokens(self):
         """Fetches a worker."""
         if not self._find_token(token.Worker):
-            worker = Arc.get_worker()
-            if worker:
+            if (worker := Arc.get_worker()):
                 self._add_token(worker)
         return bool(self._find_token(token.Worker))
 
@@ -362,8 +356,7 @@ class Factory(Transition):
     def _get_tokens(self):
         """Fetches a worker."""
         if not self._find_token(token.Worker):
-            worker = Arc.get_worker()
-            if worker:
+            if (worker := Arc.get_worker()):
                 self._add_token(worker)
         return bool(self._find_token(token.Worker))
 
