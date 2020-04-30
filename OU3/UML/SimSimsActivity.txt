@@ -42,7 +42,7 @@ if (Magazine needs to adapt?) then (yes)
             :Add one apartment;
         endif
     else (no)
-        :Add one apartment;
+        :Add one factory;
     endif
 else (no)
 endif
