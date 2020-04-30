@@ -22,155 +22,155 @@ enum ApartmentMode {
     MULTIPLY
 }
 
-Simulation : - _road: Road
-Simulation : - _shed: Shed
-Simulation : - _magazine: Magazine
-Simulation : - _transitions: List<Transition>
-Simulation : - _running: bool
-Simulation : + lock: Lock
-Simulation : + gui: SimSimsGUI
+Simulation : - _road:Road
+Simulation : - _shed:Shed
+Simulation : - _magazine:Magazine
+Simulation : - _transitions:List<Transition>
+Simulation : - _running:bool
+Simulation : + lock:Lock
+Simulation : + gui:SimSimsGUI
 Simulation : + Simulation(initial_workers=0)
-Simulation : + get_road(): Road
-Simulation : + get_shed(): Shed
-Simulation : + get_magazine(): Magazine
-Simulation : + get_num_transitions(trans_type: Type): int
-Simulation : + get_transition(trans_type: type): Transition
+Simulation : + get_road():Road
+Simulation : + get_shed():Shed
+Simulation : + get_magazine():Magazine
+Simulation : + get_num_transitions(trans_type:Type):int
+Simulation : + get_transition(trans_type:type):Transition
 Simulation : + create_gui()
 Simulation : + update_gui_positions()
-Simulation : + add_transition(trans: Transition)
-Simulation : + remove_transition(trans: Transition)
+Simulation : + add_transition(trans:Transition)
+Simulation : + remove_transition(trans:Transition)
 Simulation : + run()
 Simulation : + stop()
 Simulation : + adapt()
-Simulation : + to_dict(): dict
-Simulation : {static} + from_dict(data: dict): Simulation
+Simulation : + to_dict():dict
+Simulation : {static} + from_dict(data:dict):Simulation
 
-Arc : {static} + sim: Simulation
-Arc : {static} + transport_time: float
-Arc : {static} + lock: Lock
-Arc : {static} + set_simulation(sim: Simulation)
-Arc : {static} + get_worker(): Worker
-Arc : {static} + get_food(): Food
-Arc : {static} + get_product(): Product
-Arc : {static} + store_worker(worker: Worker)
-Arc : {static} + store_food(food: Food)
-Arc : {static} + store_product(product: Product)
+Arc : {static} + sim:Simulation
+Arc : {static} + transport_time:float
+Arc : {static} + lock:Lock
+Arc : {static} + set_simulation(sim:Simulation)
+Arc : {static} + get_worker():Worker
+Arc : {static} + get_food():Food
+Arc : {static} + get_product():Product
+Arc : {static} + store_worker(worker:Worker)
+Arc : {static} + store_food(food:Food)
+Arc : {static} + store_product(product:Product)
 
-GUINodeInterface : # _gui_component: GUINodeComponent
-GUINodeInterface : # _lock: Lock
+GUINodeInterface : # _gui_component:GUINodeComponent
+GUINodeInterface : # _lock:Lock
 GUINodeInterface : + GUINodeInterface()
 GUINodeInterface : + lock()
 GUINodeInterface : + release()
-GUINodeInterface : + get_gui_component(): GUINodeComponent
+GUINodeInterface : + get_gui_component():GUINodeComponent
 GUINodeInterface : + remove_gui_component()
-GUINodeInterface : + {abstract} create_gui_component()
+GUINodeInterface : {abstract} + create_gui_component()
 
-Place : {static} + min_amount: int
-Place : {static} + max_amount: int
-Place : # _tokens: List<Token>
+Place : {static} + min_amount:int
+Place : {static} + max_amount:int
+Place : # _tokens:List<Token>
 Place : + Place()
-Place : + get_amount(): int
-Place : + add(token: Token)
-Place : + remove(): Remove
-Place : + need_to_adapt(): bool
-Place : + {abstract} to_dict(): dict
-Place : + {abstract} {static} from_dict(): Place
+Place : + get_amount():int
+Place : + add(token:Token)
+Place : + remove():Remove
+Place : + need_to_adapt():bool
+Place : {abstract} + to_dict():dict
+Place : {abstract} {static} + from_dict():Place
 
 Token : + Token()
 
-Transition : # _tokens: List<Token>
-Transition : - _stop_thread: bool
+Transition : # _tokens:List<Token>
+Transition : - _stop_thread:bool
 Transition : + Transition()
 Transition : + run()
 Transition : + finish_thread()
-Transition : # _add_token(tok: Token)
-Transition : # _remove_token(tok: Token)
-Transition : # _find_token(tpe: Type): Token
+Transition : # _add_token(tok:Token)
+Transition : # _remove_token(tok:Token)
+Transition : # _find_token(tpe:Type):Token
 Transition : {abstract} # _get_tokens()
 Transition : {abstract} # _trigger()
-Transition : {abstract} # _release_tokens
-Transition : {abstract} + to_dict(): dict
-Transition : {abstract} {static} + from_dict(data: dict): Transition
+Transition : {abstract} # _release_tokens()
+Transition : {abstract} + to_dict():dict
+Transition : {abstract} {static} + from_dict(data:dict):Transition
 Product : + Product()
 Product : + create_gui_component()
 
 Food : + Food()
 Food : + create_gui_component()
 
-Worker : - _health: float
-Worker : {static} + max_health
+Worker : - _health:float
+Worker : {static} + max_health:float
 Worker : + Worker()
-Worker : + health(health: float)
+Worker : + health(health:float)
 Worker : + create_gui_component()
-Worker : + decrease_health(amount: float): bool
-Worker : + increase_health(amount: float)
-Worker : + to_dict(): dict
-Worker : {static} + from_dict(data: dict): Worker
+Worker : + decrease_health(amount:float):bool
+Worker : + increase_health(amount:float)
+Worker : + to_dict():dict
+Worker : {static} + from_dict(data:dict):Worker
 
-Apartment : {static} + health_restore: float
-Apartment : {static} + rest_time: float
-Apartment : - _mode: ApartmentMode
+Apartment : {static} + health_restore:float
+Apartment : {static} + rest_time:float
+Apartment : - _mode:ApartmentMode
 Apartment : + Apartment()
-Apartment : + get_mode(): ApartmentMode
-Apartment : + set_mode(mode: ApartmentMode)
+Apartment : + get_mode():ApartmentMode
+Apartment : + set_mode(mode:ApartmentMode)
 Apartment : + create_gui_component()
 Apartment : - _get_tokens()
 Apartment : - _trigger()
 Apartment : - _release_tokens()
-Apartment : + to_dict(): dict
-Apartment : {static} + from_dict(data: dict) Apartment
+Apartment : + to_dict():dict
+Apartment : {static} + from_dict(data:dict)Apartment
 
-Factory : {static} + base_production_time: float
-Factory : {static} + production_time_multiplier: float
-Factory : {static} + death_rate: float
-Factory : {static} + min_damage
-Factory : {static} + max_damage
+Factory : {static} + base_production_time:float
+Factory : {static} + production_time_multiplier:float
+Factory : {static} + death_rate:float
+Factory : {static} + min_damage:float
+Factory : {static} + max_damage:float
 Factory : + Factory()
-Factory : create_gui_component()
+Factory : + create_gui_component()
 Factory : - _get_tokens()
 Factory : - _trigger()
 Factory : - _release_tokens()
-Factory : + to_dict(): dict
-Factory : {static} + from_dict(data: dict) Factory
+Factory : + to_dict():dict
+Factory : {static} + from_dict(data:dict)Factory
 
-Farmland : {static} + risk: float
-Farmland : {static} + health_decrease: float
-Farmland : {static} + production_time: float
+Farmland : {static} + risk:float
+Farmland : {static} + health_decrease:float
+Farmland : {static} + production_time:float
 Farmland : + Farmland()
 Farmland : + create_gui_component()
 Farmland : - _get_tokens()
 Farmland : - _trigger()
 Farmland : - _release_tokens()
-Farmland : + to_dict(): dict
-Farmland : {static} + from_dict(data: dict): dict
+Farmland : + to_dict():dict
+Farmland : {static} + from_dict(data:dict):dict
 
-Foodcourt : {static} + poisoning_risk: float
-Foodcourt : {static} + min_restore: float
-Foodcourt : {static} + max_restore: float
-Foodcourt : {static} + production_time: float
+Foodcourt : {static} + poisoning_risk:float
+Foodcourt : {static} + min_restore:float
+Foodcourt : {static} + max_restore:float
+Foodcourt : {static} + production_time:float
 Foodcourt : + Foodcourt()
 Foodcourt : + create_gui_component()
 Foodcourt : - _get_tokens()
 Foodcourt : - _trigger()
 Foodcourt : - _release_tokens()
-Foodcourt : + _to_dict(): dict
-Foodcourt : {static} + from_dict(data: dict): Foodcourt
+Foodcourt : + _to_dict():dict
+Foodcourt : {static} + from_dict(data:dict):Foodcourt
 
 Shed : + Shed()
 Shed : + create_gui_component()
-Shed : + to_dict(): dict
-Shed : {static} + from_dict(data: dict): Shed
+Shed : + to_dict():dict
+Shed : {static} + from_dict(data:dict):Shed
 
 Magazine : + Magazine()
 Magazine : + create_gui_component()
-Magazine : + to_dict(): dict
-Magazine : {static} + from_dict(data: dict): Magazine
+Magazine : + to_dict():dict
+Magazine : {static} + from_dict(data:dict):Magazine
 
-Road : + Road(initial_workers: int)
+Road : + Road(initial_workers:int)
 Road : + create_gui_component()
-Road : + add(worker: Worker)
-Road : + to_dict(): dict
-Road : {static} + from_dict(data: dict): Road
+Road : + add(worker:Worker)
+Road : + to_dict():dict
+Road : {static} + from_dict(data:dict):Road
 
 Place <|-- Road
 Place <|-- Shed
