@@ -1,0 +1,67 @@
+@startuml
+start
+partition Adapt {
+if (Road needs to adapt?) then (yes)
+    if (Too few workers?) then (yes)
+        if (All apartmens set to MULTIPLY?) then (yes)
+            :Add one apartment;
+        else (no)
+            :Set all apartments to MULTIPLY;
+        endif
+    else (no)
+        if (All apartments set to REST?) then (yes)
+            :Remove one apartment;
+        else (no)
+            :Set all apartments to REST;
+        endif
+    endif
+else (no)
+    :Set all apartments to NEUTRAL;
+endif
+if (Shed needs to adapt?) then (yes)
+    if (Too little food?) then (yes)
+        if (More than 2 foodcourts?) then (yes)
+            :Remove one foodcourt;
+        else (no)
+            :Add one farmland;
+        endif
+    else (no)
+        if (More than 2 farmland?) then (yes)
+            :Remove one farmland;
+        else (no)
+            :Add one foodcourt;
+        endif
+    endif
+else (no)
+endif
+if (Magazine needs to adapt?) then (yes)
+    if (Too many products?) then (yes)
+        if (More than 2 factories?) then (yes)
+            :Remove one factory;
+        else (no)
+            :Add one apartment;
+        endif
+    else (no)
+        :Add one apartment;
+    endif
+else (no)
+endif
+if (Fewer than 2 apartments?) then (yes)
+    :Add one apartment;
+else (no)
+endif
+if (Fewer than 2 farmlands?) then (yes)
+    :Add one farmland;
+else (no)
+endif
+if (Fewer than 2 foodcourts?) then (yes)
+    :Add one foodcourt;
+else (no)
+endif
+if (Fewer than 2 factories?) then (yes)
+    :Add one factory;
+else (no)
+endif
+}
+stop
+@enduml

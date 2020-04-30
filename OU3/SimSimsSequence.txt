@@ -1,0 +1,20 @@
+@startuml
+Simulation -> ":Farmland" : start()
+":Farmland" -> ":Farmland" : _get_tokens()
+":Farmland" -> Arc : get_worker()
+Arc -> Simulation : get_road()
+Arc <-- Simulation : :Road
+Arc -> ":Road" : remove()
+Arc <-- ":Road" : :Worker
+Arc --> ":Farmland" : :Worker
+":Farmland" -> ":Farmland" : _trigger()
+":Farmland" -> ":Farmland" : _release_tokens()
+":Farmland" -> Arc : store_food(:Food)
+Arc -> Simulation : get_shed()
+Arc <-- Simulation : :Shed
+Arc -> ":Shed" : add(:Food)
+":Farmland" -> Arc : store_worker(:Worker)
+Arc -> Simulation : get_road()
+Arc <-- Simulation : :Road
+Arc -> ":Road" : add(:worker)
+@enduml
