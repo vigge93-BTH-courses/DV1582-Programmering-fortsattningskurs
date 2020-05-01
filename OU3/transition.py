@@ -12,11 +12,12 @@ from arc import Arc
 class Transition(GUINodeInterface, Thread):
     """Parent class for all transitions."""
 
-    def __init__(self):
+    def __init__(self, gui, arc):
         Thread.__init__(self)
-        GUINodeInterface.__init__(self)
+        GUINodeInterface.__init__(self, gui)
         self._tokens = []
         self._stop_thread = False
+        self._arc = arc
 
     def run(self):
         """Runs the thread."""
@@ -71,7 +72,7 @@ class Transition(GUINodeInterface, Thread):
         raise NotImplementedError
 
     @classmethod
-    def from_dict(self, data):
+    def from_dict(self, data, gui, arc):
         raise NotImplementedError
 
 
@@ -82,27 +83,24 @@ class Foodcourt(Transition):
     max_restore = 70
     production_time = 0.5
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, gui, arc):
+        super().__init__(gui, arc)
         self.create_gui_component()
 
     def create_gui_component(self):
         """Creates a green transition gui component."""
         parameters = {'lable': 'Foodcourt', 'color': '#00FF00'}
         self.lock()
-        simulation.Simulation.lock.acquire()
-        self._gui_component = simulation.Simulation.gui.create_transition_ui(
-            parameters)
-        simulation.Simulation.lock.release()
+        self._gui_component = self._gui.create_transition_ui(parameters)
         self.release()
 
     def _get_tokens(self):
         """Fetches one worker and one food."""
         if not self._find_token(token.Worker):
-            if (worker := Arc.get_worker()):
+            if (worker := self._arc.get_worker()):
                 self._add_token(worker)
         if not self._find_token(token.Food):
-            if (food := Arc.get_food()):
+            if (food := self._arc.get_food()):
                 self._add_token(food)
         return self._find_token(token.Worker) and self._find_token(token.Food)
 
@@ -129,9 +127,9 @@ class Foodcourt(Transition):
             token_.release()
             self.release()
             if isinstance(token_, token.Worker):
-                Arc.store_worker(token_)
+                self._arc.store_worker(token_)
             elif isinstance(token_, token.Food):
-                Arc.store_food(token_)
+                self._arc.store_food(token_)
         self._tokens = []
 
     def to_dict(self):
@@ -149,14 +147,14 @@ class Foodcourt(Transition):
         return data
 
     @classmethod
-    def from_dict(cls, data):
+    def from_dict(cls, data, gui, arc):
         """Creates a foodcourt from a dicitonary."""
-        foodcourt = cls()
+        foodcourt = cls(gui, arc)
         if data['worker']:
-            foodcourt._add_token(token.Worker.from_dict(data['worker']))
+            foodcourt._add_token(token.Worker.from_dict(data['worker'], gui))
 
         for _ in range(data['food']):
-            foodcourt._add_token(token.Food())
+            foodcourt._add_token(token.Food(gui))
         return foodcourt
 
 
@@ -165,8 +163,8 @@ class Apartment(Transition):
     health_restore = 20
     rest_time = 0.7
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, gui, arc):
+        super().__init__(gui, arc)
         self.create_gui_component()
         self._mode = ApartmentMode.NEUTRAL
 
@@ -179,10 +177,7 @@ class Apartment(Transition):
         """Creates a black transition gui component."""
         parameters = {'lable': 'Apartment', 'color': '#000000'}
         self.lock()
-        simulation.Simulation.lock.acquire()
-        self._gui_component = simulation.Simulation.gui.create_transition_ui(
-            parameters)
-        simulation.Simulation.lock.release()
+        self._gui_component = self._gui.create_transition_ui(parameters)
         self.release()
 
     def set_mode(self, mode):
@@ -192,13 +187,13 @@ class Apartment(Transition):
     def _get_tokens(self):
         """Fetches one product and one or two workers."""
         if not self._find_token(token.Product):
-            if (product := Arc.get_product()):
+            if (product := self._arc.get_product()):
                 self._add_token(product)
         if not self._find_token(token.Worker):
-            if (worker := Arc.get_worker()):
+            if (worker := self._arc.get_worker()):
                 self._add_token(worker)
             if (self._mode == ApartmentMode.NEUTRAL and random.random() < 0.5) or self._mode == ApartmentMode.MULTIPLY:
-                if (worker := Arc.get_worker()):
+                if (worker := self._arc.get_worker()):
                     self._add_token(worker)
         return self._find_token(token.Product) and self._find_token(token.Worker)
 
@@ -206,7 +201,7 @@ class Apartment(Transition):
         """If apartment has one worker, heal it. If apartment has two workers, create a third worker. Consumes the product."""
         sleep(Apartment.rest_time)
         if len(self._tokens) == 3:
-            self._add_token(token.Worker())
+            self._add_token(token.Worker(self._gui))
         else:
             self._find_token(token.Worker).increase_health(
                 Apartment.health_restore)
@@ -222,9 +217,9 @@ class Apartment(Transition):
             self.release()
             token_.release()
             if isinstance(token_, token.Worker):
-                Arc.store_worker(token_)
+                self._arc.store_worker(token_)
             elif isinstance(token_, token.Product):
-                Arc.store_product(token_)
+                self._arc.store_product(token_)
         self._tokens = []
 
     def to_dict(self):
@@ -242,14 +237,14 @@ class Apartment(Transition):
         return data
 
     @classmethod
-    def from_dict(cls, data):
+    def from_dict(cls, data, gui, arc):
         """Creates an apartment from a dictionary."""
-        apartment = cls()
+        apartment = cls(gui, arc)
         for worker in data['workers']:
-            apartment._add_token(token.Worker.from_dict(worker))
+            apartment._add_token(token.Worker.from_dict(worker, gui))
 
         for _ in range(data['products']):
-            apartment._add_token(token.Product())
+            apartment._add_token(token.Product(gui))
 
         apartment._mode = ApartmentMode(data['mode'])
         return apartment
@@ -261,31 +256,28 @@ class Farmland(Transition):
     health_decrease = 20
     production_time = 1
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, gui, arc):
+        super().__init__(gui, arc)
         self.create_gui_component()
 
     def create_gui_component(self):
         """Creates a brown transition gui component."""
         parameters = {'lable': 'Farmland', 'color': '#9C7200'}
         self.lock()
-        simulation.Simulation.lock.acquire()
-        self._gui_component = simulation.Simulation.gui.create_transition_ui(
-            parameters)
-        simulation.Simulation.lock.release()
+        self._gui_component = self._gui.create_transition_ui(parameters)
         self.release()
 
     def _get_tokens(self):
         """Fetches a worker."""
         if not self._find_token(token.Worker):
-            if (worker := Arc.get_worker()):
+            if (worker := self._arc.get_worker()):
                 self._add_token(worker)
         return bool(self._find_token(token.Worker))
 
     def _trigger(self):
         """Produces one food and has a risk of damaging the worker."""
         sleep(Farmland.production_time)
-        food = token.Food()
+        food = token.Food(self._gui)
         self._add_token(food)
         if random.random() < Farmland.risk:
             self._find_token(token.Worker).decrease_health(
@@ -300,9 +292,9 @@ class Farmland(Transition):
             token_.release()
             self.release()
             if isinstance(token_, token.Worker):
-                Arc.store_worker(token_)
+                self._arc.store_worker(token_)
             elif isinstance(token_, token.Food):
-                Arc.store_food(token_)
+                self._arc.store_food(token_)
         self._tokens = []
 
     def to_dict(self):
@@ -320,14 +312,14 @@ class Farmland(Transition):
         return data
 
     @classmethod
-    def from_dict(cls, data):
+    def from_dict(cls, data, gui, arc):
         """Creates a farmland from a dictionary."""
-        farmland = cls()
+        farmland = cls(gui, arc)
         if data['worker']:
-            farmland._add_token(token.Worker.from_dict(data['worker']))
+            farmland._add_token(token.Worker.from_dict(data['worker'], gui))
 
         for _ in range(data['food']):
-            farmland._add_token(token.Food())
+            farmland._add_token(token.Food(gui))
         return farmland
 
 
@@ -339,24 +331,21 @@ class Factory(Transition):
     min_damage = 5
     max_damage = 15
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, gui, arc):
+        super().__init__(gui, arc)
         self.create_gui_component()
 
     def create_gui_component(self):
         """Creates a red transition gui component."""
         parameters = {'lable': 'Factory', 'color': '#ADADAD'}
         self.lock()
-        simulation.Simulation.lock.acquire()
-        self._gui_component = simulation.Simulation.gui.create_transition_ui(
-            parameters)
-        simulation.Simulation.lock.release()
+        self._gui_component = self._gui.create_transition_ui(parameters)
         self.release()
 
     def _get_tokens(self):
         """Fetches a worker."""
         if not self._find_token(token.Worker):
-            if (worker := Arc.get_worker()):
+            if (worker := self._arc.get_worker()):
                 self._add_token(worker)
         return bool(self._find_token(token.Worker))
 
@@ -369,7 +358,7 @@ class Factory(Transition):
                            + (token.Worker.max_health - worker.health)
                            * Factory.production_time_multiplier)
         sleep(production_time)
-        self._add_token(token.Product())
+        self._add_token(token.Product(self._gui))
         worker.decrease_health(random.randint(
             Factory.min_damage, Factory.max_damage))
         if random.random() < Factory.death_rate:
@@ -384,9 +373,9 @@ class Factory(Transition):
             token_.release()
             self.release()
             if isinstance(token_, token.Worker):
-                Arc.store_worker(token_)
+                self._arc.store_worker(token_)
             elif isinstance(token_, token.Product):
-                Arc.store_product(token_)
+                self._arc.store_product(token_)
         self._tokens = []
 
     def to_dict(self):
@@ -404,13 +393,13 @@ class Factory(Transition):
         return data
 
     @classmethod
-    def from_dict(cls, data):
-        factory = cls()
+    def from_dict(cls, data, gui, arc):
+        factory = cls(gui, arc)
         if data['worker']:
-            factory._add_token(token.Worker.from_dict(data['worker']))
+            factory._add_token(token.Worker.from_dict(data['worker'], gui))
 
         for _ in range(data['products']):
-            factory._add_token(token.Product())
+            factory._add_token(token.Product(gui))
         return factory
 
 

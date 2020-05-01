@@ -7,43 +7,37 @@ from gui_node_interface import GUINodeInterface
 class Token(GUINodeInterface):
     """Parent class for all tokens."""
 
-    def __init__(self):
-        GUINodeInterface.__init__(self)
+    def __init__(self, gui):
+        GUINodeInterface.__init__(self, gui)
 
 
 class Product(Token):
     """Product type token. Subclass to Token."""
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, gui):
+        super().__init__(gui)
         self.create_gui_component()
 
     def create_gui_component(self):
         """Creates a red token gui component and adds it to the gui."""
         properties = {'color': '#ff0000'}
         self.lock()
-        simulation.Simulation.lock.acquire()
-        self._gui_component = simulation.Simulation.gui.create_token_ui(
-            properties)
+        self._gui_component = self._gui.create_token_ui(properties)
         self.release()
-        simulation.Simulation.lock.release()
 
 
 class Food(Token):
     """Food type token. Subclass to Token."""
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, gui):
+        super().__init__(gui)
         self.create_gui_component()
 
     def create_gui_component(self):
         """Creates a green token gui component and adds it to the gui."""
         properties = {'color': '#00ff00'}
         self.lock()
-        simulation.Simulation.lock.acquire()
-        self._gui_component = simulation.Simulation.gui.create_token_ui(
-            properties)
-        simulation.Simulation.lock.release()
+        self._gui_component = self._gui.create_token_ui(properties)
         self.release()
 
 
@@ -52,8 +46,8 @@ class Worker(Token):
 
     max_health = 100
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, gui):
+        super().__init__(gui)
         self.create_gui_component()
         self._health = Worker.max_health
 
@@ -84,10 +78,8 @@ class Worker(Token):
         """Creates a black token gui component and adds it to the gui."""
         properties = {'color': '#000000'}
         self.lock()
-        simulation.Simulation.lock.acquire()
-        self._gui_component = simulation.Simulation.gui.create_token_ui(
+        self._gui_component = self._gui.create_token_ui(
             properties)
-        simulation.Simulation.lock.release()
         self.release()
 
     def to_dict(self):
@@ -95,8 +87,8 @@ class Worker(Token):
         return {'health': self._health}
 
     @classmethod
-    def from_dict(cls, data):
+    def from_dict(cls, data, gui):
         """Creates and returns a worker from a dict object."""
-        worker = cls()
+        worker = cls(gui)
         worker.health = data['health']
         return worker

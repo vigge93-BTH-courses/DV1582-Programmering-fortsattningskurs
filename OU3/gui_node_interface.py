@@ -5,13 +5,14 @@ from threading import Lock
 class GUINodeInterface():
     """Abstract class for GUINodeComponent implementation."""
 
-    def __init__(self):
+    def __init__(self, gui):
+        self._gui = gui
         self._gui_component = None
         self._lock = Lock()
 
     def __del__(self):
         self._lock.acquire()
-        simulation.Simulation.gui.remove(self._gui_component)
+        self._gui.remove(self._gui_component)
         self._lock.release()
 
     @property
@@ -23,7 +24,7 @@ class GUINodeInterface():
         """Removes gui component from gui."""
         self._lock.acquire()
         if self._gui_component:
-            simulation.Simulation.gui.remove(self.get_gui_component)
+            self._gui.remove(self.get_gui_component)
         self._lock.release()
 
     def lock(self):

@@ -5,19 +5,21 @@ import json
 import simsimsui
 import place
 import transition
+import arc
 
 
 class Simulation(threading.Thread):
     """The class that manages the simulation and keeps track of all objects in the simulation."""
-    gui = None
-    lock = threading.Lock()
 
     def __init__(self, initial_workers=0):
         threading.Thread.__init__(self)
+        self._gui = None
         self.create_gui()
-        self._road = place.Road(initial_workers)
-        self._shed = place.Shed()
-        self._magazine = place.Magazine()
+        self._lock = threading.Lock()
+        self._arc = arc.Arc(self)
+        self._road = place.Road(initial_workers, self._gui)
+        self._shed = place.Shed(self._gui)
+        self._magazine = place.Magazine(self._gui)
         self._transitions = []
         self._running = False
 
@@ -36,6 +38,16 @@ class Simulation(threading.Thread):
         """Returns the magazine."""
         return self._magazine
 
+    @property
+    def get_arc(self):
+        """Returns the arc."""
+        return self._arc
+
+    @property
+    def get_gui(self):
+        """Returns the gui."""
+        return self._gui
+
     def get_num_of_transitions(self, trans_type):
         """Returns the number of transitions of a specific type."""
         return len([trans for trans in self._transitions if isinstance(trans, trans_type)])
@@ -48,12 +60,12 @@ class Simulation(threading.Thread):
 
     def create_gui(self):
         """Creates a gui class attribute."""
-        Simulation.gui = simsimsui.SimSimsGUI(w=700, h=700)
-        Simulation.gui.on_shoot(self.stop)
+        self._gui = simsimsui.SimSimsGUI(w=700, h=700)
+        self._gui.on_shoot(self.stop)
 
     def update_gui_positions(self):
         """Updates positions of all gui elements."""
-        Simulation.lock.acquire()
+        self._lock.acquire()
 
         num_of_gui_objects = len(self._transitions) + 3
 
@@ -74,11 +86,11 @@ class Simulation(threading.Thread):
             trans.get_gui_component.autoplace(idx + 3, num_of_gui_objects)
             trans.release()
 
-        Simulation.lock.release()
+        self._lock.release()
 
     def add_transition(self, trans, /):
         """Adds a transition to the simulation and starts its process if the simulation is running."""
-        Simulation.lock.acquire()
+        self._lock.acquire()
         self._road.lock()
         self._shed.lock()
         self._magazine.lock()
@@ -86,28 +98,27 @@ class Simulation(threading.Thread):
 
         self._transitions.append(trans)
 
-        gui = Simulation.gui
         road_gui = self._road.get_gui_component
         magazine_gui = self._magazine.get_gui_component
         shed_gui = self._shed.get_gui_component
         transition_gui = trans.get_gui_component
 
-        gui.connect(road_gui, transition_gui, {'arrows': False})
+        self._gui.connect(road_gui, transition_gui, {'arrows': False})
 
         if isinstance(trans, transition.Apartment):
-            gui.connect(transition_gui, magazine_gui, {
-                        'arrows': True, 'color': '#AA0000'})
+            self._gui.connect(transition_gui, magazine_gui, {
+                'arrows': True, 'color': '#AA0000'})
         elif isinstance(trans, transition.Factory):
-            gui.connect(magazine_gui, transition_gui, {
-                        'arrows': True, 'color': '#AA0000'})
+            self._gui.connect(magazine_gui, transition_gui, {
+                'arrows': True, 'color': '#AA0000'})
         elif isinstance(trans, transition.Farmland):
-            gui.connect(shed_gui, transition_gui, {
-                        'arrows': True, 'color': '#00AA00'})
+            self._gui.connect(shed_gui, transition_gui, {
+                'arrows': True, 'color': '#00AA00'})
         elif isinstance(trans, transition.Foodcourt):
-            gui.connect(transition_gui, shed_gui, {
+            self._gui.connect(transition_gui, shed_gui, {
                 'arrows': True, 'color': '#00AA00'})
 
-        Simulation.lock.release()
+        self._lock.release()
         self._road.release()
         self._shed.release()
         self._magazine.release()
@@ -123,14 +134,14 @@ class Simulation(threading.Thread):
         trans.finish_thread()
         trans.join()
 
-        Simulation.lock.acquire()
+        self._lock.acquire()
         trans.lock()
 
-        Simulation.gui.remove(trans.get_gui_component)
+        self._gui.remove(trans.get_gui_component)
         self._transitions.remove(trans)
 
         trans.release()
-        Simulation.lock.release()
+        self._lock.release()
 
         self.update_gui_positions()
 
@@ -168,7 +179,8 @@ class Simulation(threading.Thread):
                 for trans in self._transitions:
                     if isinstance(trans, transition.Apartment):
                         if trans.get_mode == transition.ApartmentMode.MULTIPLY:
-                            apartment = transition.Apartment()
+                            apartment = transition.Apartment(
+                                self._gui, self._arc)
                             apartment.set_mode(
                                 transition.ApartmentMode.MULTIPLY)
                             self.add_transition(apartment)
@@ -197,14 +209,16 @@ class Simulation(threading.Thread):
                     foodcourt = self.get_transition(transition.Foodcourt)
                     self.remove_transition(foodcourt)
                 else:
-                    self.add_transition(transition.Farmland())
+                    self.add_transition(
+                        transition.Farmland(self._gui, self._arc))
             # If there are too many food, remove a farmland if possible, otherwise add a foodcourt
             else:
                 if self.get_num_of_transitions(transition.Farmland) > 2:
                     farmland = self.get_transition(transition.Farmland)
                     self.remove_transition(farmland)
                 else:
-                    self.add_transition(transition.Foodcourt())
+                    self.add_transition(
+                        transition.Foodcourt(self._gui, self._arc))
 
         # MAGAZINE - Controlled with factories primarily and apartments secondarily
         if self._magazine.need_to_adapt():
@@ -214,20 +228,21 @@ class Simulation(threading.Thread):
                     factory = self.get_transition(transition.Factory)
                     self.remove_transition(factory)
                 else:
-                    self.add_transition(transition.Apartment())
+                    self.add_transition(
+                        transition.Apartment(self._gui, self._arc))
             # If there are too few products, add a factory
             else:
-                self.add_transition(transition.Factory())
+                self.add_transition(transition.Factory(self._gui, self._arc))
 
         # Check if there are enough of each transition
         if self.get_num_of_transitions(transition.Apartment) < 2:
-            self.add_transition(transition.Apartment())
+            self.add_transition(transition.Apartment(self._gui, self._arc))
         if self.get_num_of_transitions(transition.Factory) < 2:
-            self.add_transition(transition.Factory())
+            self.add_transition(transition.Factory(self._gui, self._arc))
         if self.get_num_of_transitions(transition.Farmland) < 2:
-            self.add_transition(transition.Farmland())
+            self.add_transition(transition.Farmland(self._gui, self._arc))
         if self.get_num_of_transitions(transition.Foodcourt) < 2:
-            self.add_transition(transition.Foodcourt())
+            self.add_transition(transition.Foodcourt(self._gui, self._arc))
 
         print()
 
@@ -249,18 +264,22 @@ class Simulation(threading.Thread):
         sim._shed.remove_gui_component()
         sim._magazine.remove_gui_component()
 
-        sim._road = place.Road.from_dict(data['road'])
-        sim._shed = place.Shed.from_dict(data['shed'])
-        sim._magazine = place.Magazine.from_dict(data['magazine'])
+        sim._road = place.Road.from_dict(data['road'], sim.get_gui)
+        sim._shed = place.Shed.from_dict(data['shed'], sim.get_gui)
+        sim._magazine = place.Magazine.from_dict(data['magazine'], sim.get_gui)
 
         for trans in data['transitions']:
             if trans['type'] == 'foodcourt':
-                sim.add_transition(transition.Foodcourt.from_dict(trans))
+                sim.add_transition(transition.Foodcourt.from_dict(
+                    trans, sim.get_gui, sim.get_arc))
             elif trans['type'] == 'farmland':
-                sim.add_transition(transition.Farmland.from_dict(trans))
+                sim.add_transition(transition.Farmland.from_dict(
+                    trans, sim.get_gui, sim.get_arc))
             elif trans['type'] == 'apartment':
-                sim.add_transition(transition.Apartment.from_dict(trans))
+                sim.add_transition(transition.Apartment.from_dict(
+                    trans, sim.get_gui, sim.get_arc))
             elif trans['type'] == 'factory':
-                sim.add_transition(transition.Factory.from_dict(trans))
+                sim.add_transition(transition.Factory.from_dict(
+                    trans, sim.get_gui, sim.get_arc))
 
         return sim
