@@ -143,7 +143,7 @@ class Foodcourt(Transition):
             if isinstance(token_, token.Food):
                 data['food'] += 1
             else:
-                data['worker'] = token_.to_dict()
+                data['worker'] = token_.to_dict() if token_.get_health > 0 else None
         return data
 
     @classmethod
@@ -232,7 +232,7 @@ class Apartment(Transition):
         for token_ in self._tokens:
             if isinstance(token_, token.Product):
                 data['products'] += 1
-            else:
+            elif token_.get_health > 0:
                 data['workers'].append(token_.to_dict())
         return data
 
@@ -308,7 +308,7 @@ class Farmland(Transition):
             if isinstance(token_, token.Food):
                 data['food'] += 1
             else:
-                data['worker'] = token_.to_dict()
+                data['worker'] = token_.to_dict() if token_.get_health > 0 else None
         return data
 
     @classmethod
@@ -389,7 +389,7 @@ class Factory(Transition):
             if isinstance(token_, token.Product):
                 data['products'] += 1
             else:
-                data['worker'] = token_.to_dict()
+                data['worker'] = token_.to_dict() if token_.get_health > 0 else None
         return data
 
     @classmethod

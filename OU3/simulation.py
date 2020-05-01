@@ -11,7 +11,7 @@ import arc
 class Simulation(threading.Thread):
     """The class that manages the simulation and keeps track of all objects in the simulation."""
 
-    def __init__(self, initial_workers=0):
+    def __init__(self, save_file, initial_workers=0):
         threading.Thread.__init__(self)
         self._gui = None
         self.create_gui()
@@ -22,6 +22,7 @@ class Simulation(threading.Thread):
         self._magazine = place.Magazine(self._gui)
         self._transitions = []
         self._running = False
+        self._save_file = save_file
 
     @property
     def get_road(self):
@@ -153,17 +154,18 @@ class Simulation(threading.Thread):
         self.update_gui_positions()
         while self._running:
             self.adapt()
-            with open('sim.json', 'w', encoding='utf-8') as f:
-                f.write(json.dumps(self.to_dict()))
             sleep(10)
         print('Main loop stopped')
         for trans in self._transitions:
-            trans.join()
+            if trans.is_alive():
+                trans.join()
         print('Simulation stopped')
 
     def stop(self):
-        """Sets flags to stop the simulation."""
+        """Sets flags to stop the simulation and saves the simulation to a json file."""
         print('Stopping')
+        with open(self._save_file, 'w', encoding='utf-8') as f:
+            f.write(json.dumps(self.to_dict()))
         for transition in self._transitions:
             transition.finish_thread()
         self._running = False
@@ -256,9 +258,9 @@ class Simulation(threading.Thread):
         }
 
     @classmethod
-    def from_dict(cls, data):
+    def from_dict(cls, data, save_file):
         """Creates a simulation object from a dictionary."""
-        sim = cls()
+        sim = cls(save_file)
 
         sim._road.remove_gui_component()
         sim._shed.remove_gui_component()

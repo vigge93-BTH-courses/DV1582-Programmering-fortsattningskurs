@@ -135,7 +135,7 @@ class Road(Place):
 
     def to_dict(self):
         """Serializes road to a dictionary."""
-        return {'workers': [worker.to_dict() for worker in self._tokens]}
+        return {'workers': [worker.to_dict() for worker in self._tokens if worker.get_health > 0]}
 
     @classmethod
     def from_dict(cls, data, gui):
