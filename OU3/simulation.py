@@ -1,3 +1,4 @@
+"""Module for running a petri net simulation following SimSims rules."""
 import threading
 from time import sleep
 import json
@@ -9,9 +10,10 @@ import arc
 
 
 class Simulation(threading.Thread):
-    """The class that manages the simulation and keeps track of all objects in the simulation."""
+    """Manages and keeps track of all objects in the simulation."""
 
     def __init__(self, save_file, initial_workers=0):
+        """Initialize Simulation."""
         threading.Thread.__init__(self)
         self._gui = None
         self.create_gui()
@@ -26,46 +28,47 @@ class Simulation(threading.Thread):
 
     @property
     def get_road(self):
-        """Returns the road."""
+        """Return the road."""
         return self._road
 
     @property
     def get_shed(self):
-        """Returns the shed."""
+        """Return the shed."""
         return self._shed
 
     @property
     def get_magazine(self):
-        """Returns the magazine."""
+        """Return the magazine."""
         return self._magazine
 
     @property
     def get_arc(self):
-        """Returns the arc."""
+        """Return the arc."""
         return self._arc
 
     @property
     def get_gui(self):
-        """Returns the gui."""
+        """Return the gui."""
         return self._gui
 
     def get_num_of_transitions(self, trans_type):
-        """Returns the number of transitions of a specific type."""
-        return len([trans for trans in self._transitions if isinstance(trans, trans_type)])
+        """Return the number of transitions of a specific type."""
+        return len([trans for trans in self._transitions
+                    if isinstance(trans, trans_type)])
 
     def get_transition(self, trans_type):
-        """Returns the first occurence of transition with type: trans_type in transitions."""
+        """Return the first occurence of transition with type: trans_type."""
         for trans in self._transitions:
             if isinstance(trans, trans_type):
                 return trans
 
     def create_gui(self):
-        """Creates a gui class attribute."""
+        """Create a gui class attribute."""
         self._gui = simsimsui.SimSimsGUI(w=700, h=700)
         self._gui.on_shoot(self.stop)
 
     def update_gui_positions(self):
-        """Updates positions of all gui elements."""
+        """Update positions of all gui elements."""
         self._lock.acquire()
 
         num_of_gui_objects = len(self._transitions) + 3
@@ -90,7 +93,10 @@ class Simulation(threading.Thread):
         self._lock.release()
 
     def add_transition(self, trans, /):
-        """Adds a transition to the simulation and starts its process if the simulation is running."""
+        """Add a transition to the simulation.
+
+        Start its process if the simulation is running.
+        """
         self._lock.acquire()
         self._road.lock()
         self._shed.lock()
@@ -131,7 +137,7 @@ class Simulation(threading.Thread):
             trans.start()
 
     def remove_transition(self, trans, /):
-        """Ends transition's process and removes it from the simulation."""
+        """End transition's process and remove it from the simulation."""
         trans.finish_thread()
         trans.join()
 
@@ -147,7 +153,7 @@ class Simulation(threading.Thread):
         self.update_gui_positions()
 
     def run(self):
-        """Starts the simulation."""
+        """Start the simulation."""
         for trans in self._transitions:
             trans.start()
         self._running = True
@@ -162,7 +168,7 @@ class Simulation(threading.Thread):
         print('Simulation stopped')
 
     def stop(self):
-        """Sets flags to stop the simulation and saves the simulation to a json file."""
+        """Set flags to stop the simulation. Save the simulation to file."""
         print('Stopping')
         with open(self._save_file, 'w', encoding='utf-8') as f:
             f.write(json.dumps(self.to_dict()))
@@ -171,7 +177,7 @@ class Simulation(threading.Thread):
         self._running = False
 
     def adapt(self):
-        """Adds or removes transitions and changes priority of apartments in order to balance the system."""
+        """Add/remove transitions or change apartment priority to balance the system."""
         print('Adapting:')
         # Check if any resources need to adapt
         # ROADS - Controlled with apartments
@@ -249,17 +255,18 @@ class Simulation(threading.Thread):
         print()
 
     def to_dict(self):
-        """Serializes the simulation object to a dictionary."""
+        """Serialize the simulation object to a dictionary."""
         return {
             'road': self._road.to_dict(),
             'shed': self._shed.to_dict(),
             'magazine': self._magazine.to_dict(),
-            'transitions': [transition.to_dict() for transition in self._transitions],
+            'transitions': [transition.to_dict()
+                            for transition in self._transitions],
         }
 
     @classmethod
     def from_dict(cls, data, save_file):
-        """Creates a simulation object from a dictionary."""
+        """Create a simulation object from a dictionary."""
         sim = cls(save_file)
 
         sim._road.remove_gui_component()

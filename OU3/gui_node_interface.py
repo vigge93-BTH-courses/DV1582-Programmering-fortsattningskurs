@@ -1,3 +1,4 @@
+"""Module for implementing SimSimsGUI Nodes."""
 import simulation
 from threading import Lock
 
@@ -6,22 +7,24 @@ class GUINodeInterface():
     """Abstract class for GUINodeComponent implementation."""
 
     def __init__(self, gui):
+        """Initialize GUINodeInterface."""
         self._gui = gui
         self._gui_component = None
         self._lock = Lock()
 
     def __del__(self):
+        """Remove own gui_component."""
         self._lock.acquire()
         self._gui.remove(self._gui_component)
         self._lock.release()
 
     @property
     def get_gui_component(self):
-        """Returns the GUINodeComponent."""
+        """Return the GUINodeComponent."""
         return self._gui_component
 
     def remove_gui_component(self):
-        """Removes gui component from gui."""
+        """Remove gui component from gui."""
         self._lock.acquire()
         if self._gui_component:
             self._gui.remove(self.get_gui_component)
@@ -36,4 +39,5 @@ class GUINodeInterface():
         self._lock.release()
 
     def create_gui_component(self):
+        """Abstract method to create gui component."""
         raise NotImplementedError
