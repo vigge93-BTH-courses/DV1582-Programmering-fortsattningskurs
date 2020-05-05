@@ -99,7 +99,7 @@ class Magazine(Place):
 
     def create_gui_component(self):
         """Create a red magazine gui component and add it to gui."""
-        properties = {'lable': 'Magazine', 'color': '#ff0000'}
+        properties = {'lable': 'Magazine', 'color': '#6666ff'}
         self.lock()
         self._gui_component = self._gui.create_place_ui(properties)
         self.release()

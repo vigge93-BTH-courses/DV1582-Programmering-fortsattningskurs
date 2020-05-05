@@ -210,7 +210,7 @@ class Apartment(Transition):
     def _trigger(self):
         """If apartment has one worker, heal it. If apartment has two workers, create a third worker. Consumes the product."""
         sleep(Apartment.rest_time)
-        if len(self._tokens) == 3:
+        if len(self._tokens) == 3:  # Two workers and one product
             self._add_token(token.Worker(self._gui))
         else:
             self._find_token(token.Worker).increase_health(
@@ -351,7 +351,7 @@ class Factory(Transition):
 
     def create_gui_component(self):
         """Create a red transition gui component."""
-        parameters = {'lable': 'Factory', 'color': '#ADADAD'}
+        parameters = {'lable': 'Factory', 'color': '#6666ff'}
         self.lock()
         self._gui_component = self._gui.create_transition_ui(parameters)
         self.release()
@@ -403,7 +403,7 @@ class Factory(Transition):
         for token_ in self._tokens:
             if isinstance(token_, token.Product):
                 data['products'] += 1
-            elif token.get_health > 0:
+            elif token_.get_health > 0:
                 data['worker'] = token_.to_dict()
         return data
 

@@ -114,10 +114,10 @@ class Simulation(threading.Thread):
 
         if isinstance(trans, transition.Apartment):
             self._gui.connect(transition_gui, magazine_gui, {
-                'arrows': True, 'color': '#AA0000'})
+                'arrows': True, 'color': '#6666ff'})
         elif isinstance(trans, transition.Factory):
             self._gui.connect(magazine_gui, transition_gui, {
-                'arrows': True, 'color': '#AA0000'})
+                'arrows': True, 'color': '#6666ff'})
         elif isinstance(trans, transition.Farmland):
             self._gui.connect(shed_gui, transition_gui, {
                 'arrows': True, 'color': '#00AA00'})

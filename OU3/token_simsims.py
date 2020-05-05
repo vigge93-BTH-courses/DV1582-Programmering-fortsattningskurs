@@ -23,7 +23,7 @@ class Product(Token):
 
     def create_gui_component(self):
         """Create a red token gui component and add it to the gui."""
-        properties = {'color': '#ff0000'}
+        properties = {'color': '#6666ff'}
         self.lock()
         self._gui_component = self._gui.create_token_ui(properties)
         self.release()
