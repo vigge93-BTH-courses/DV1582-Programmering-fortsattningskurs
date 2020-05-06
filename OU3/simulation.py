@@ -110,19 +110,20 @@ class Simulation(threading.Thread):
         shed_gui = self._shed.get_gui_component
         transition_gui = trans.get_gui_component
 
-        self._gui.connect(road_gui, transition_gui, {'arrows': False})
+        self._gui.connect(road_gui, transition_gui, {'arrows': True})
+        self._gui.connect(transition_gui, road_gui, {'arrows': True})
 
         if isinstance(trans, transition.Apartment):
-            self._gui.connect(transition_gui, magazine_gui, {
-                'arrows': True, 'color': '#6666ff'})
-        elif isinstance(trans, transition.Factory):
             self._gui.connect(magazine_gui, transition_gui, {
                 'arrows': True, 'color': '#6666ff'})
+        elif isinstance(trans, transition.Factory):
+            self._gui.connect(transition_gui, magazine_gui, {
+                'arrows': True, 'color': '#6666ff'})
         elif isinstance(trans, transition.Farmland):
-            self._gui.connect(shed_gui, transition_gui, {
+            self._gui.connect(transition_gui, shed_gui, {
                 'arrows': True, 'color': '#00AA00'})
         elif isinstance(trans, transition.Foodcourt):
-            self._gui.connect(transition_gui, shed_gui, {
+            self._gui.connect(shed_gui, transition_gui, {
                 'arrows': True, 'color': '#00AA00'})
 
         self._lock.release()

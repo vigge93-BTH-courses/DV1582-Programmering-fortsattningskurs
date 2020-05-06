@@ -142,8 +142,8 @@ class SimSimsUI():
         else:
             a_ui = self._create_arc_ui(src_ui, dst_ui, properties)
             if a_ui:
-                a_ui._out = src_ui
-                a_ui._in = dst_ui
+                a_ui._out = dst_ui
+                a_ui._in = src_ui
                 src_ui._arcs.append(a_ui)
                 dst_ui._arcs.append(a_ui)
                 a_ui.update_position()
