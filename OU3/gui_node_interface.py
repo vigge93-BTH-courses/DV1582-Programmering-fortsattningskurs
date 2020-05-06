@@ -1,6 +1,7 @@
 """Module for implementing SimSimsGUI Nodes."""
-import simulation
 from threading import Lock
+
+import simulation
 
 
 class GUINodeInterface():
