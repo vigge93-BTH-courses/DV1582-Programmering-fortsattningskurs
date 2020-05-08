@@ -1,77 +1,71 @@
+"""Module for arc that handles transportation of tokens."""
 from time import sleep
 from threading import Lock
 
 
 class Arc():
     """Static class to manage transportation of tokens."""
-    sim = None
+
     transport_time = 0.2
-    lock = Lock()
 
-    @classmethod
-    def set_simulation(cls, sim, / ):
-        """Specify the simulation that Arc operates on."""
-        cls.sim = sim
+    def __init__(self, sim):
+        """Create an arc object."""
+        self._sim = sim
+        self._lock = Lock()
 
-    @classmethod
-    def get_worker(cls):
-        """Gets a worker from the road. If the road is empty, returns None."""
+    def get_worker(self):
+        """Get a worker from the road. If the road is empty, return None."""
         sleep(Arc.transport_time)
+        self._lock.acquire()
         try:
-            Arc.lock.acquire()
-            worker = cls.sim.get_road.remove()
-            Arc.lock.release()
-            return worker
+            worker = self._sim.get_road.remove()
         except RuntimeError:
-            Arc.lock.release()
+            self._lock.release()
             return None
+        self._lock.release()
+        return worker
 
-    @classmethod
-    def get_food(cls):
-        """Gets a food from the shed. If the shed is empty, returns None."""
+    def get_food(self):
+        """Get a food from the shed. If the shed is empty, return None."""
         sleep(Arc.transport_time)
+        self._lock.acquire()
         try:
-            Arc.lock.acquire()
-            food = cls.sim.get_shed.remove()
-            Arc.lock.release()
-            return food
+            food = self._sim.get_shed.remove()
         except RuntimeError:
-            Arc.lock.release()
+            self._lock.release()
             return None
+        self._lock.release()
+        return food
 
-    @classmethod
-    def get_product(cls):
-        """Gets a product from the magazine. If the magazine is empty, returns None."""
+    def get_product(self):
+        """Get product from the magazine. If magazine is empty, return None."""
         sleep(Arc.transport_time)
+        self._lock.acquire()
         try:
-            Arc.lock.acquire()
-            product = cls.sim.get_magazine.remove()
-            Arc.lock.release()
-            return product
+            product = self._sim.get_magazine.remove()
         except RuntimeError:
-            Arc.lock.release()
+            self._lock.release()
             return None
+        self._lock.release()
+        return product
 
-    @classmethod
-    def store_worker(cls, worker, / ):
-        """Stores a worker on the road."""
+    def store_worker(self, worker, /):
+        """Store a worker on the road."""
         sleep(Arc.transport_time)
-        Arc.lock.acquire()
-        cls.sim.get_road.add(worker)
-        Arc.lock.release()
+        self._lock.acquire()
+        self._sim.get_road.add(worker)
+        self._lock.release()
 
-    @classmethod
-    def store_food(cls, food, / ):
-        """Stores a food in the shed."""
+    def store_food(self, food, /):
+        """Store a food in the shed."""
         sleep(Arc.transport_time)
-        Arc.lock.acquire()
-        cls.sim.get_shed.add(food)
-        Arc.lock.release()
+        self._lock.acquire()
+        self._sim.get_shed.add(food)
+        self._lock.release()
 
-    @classmethod
-    def store_product(cls, product, / ):
-        """Stores a product in the magazine."""
+    def store_product(self, product, /):
+        """Store a product in the magazine."""
         sleep(Arc.transport_time)
-        Arc.lock.acquire()
-        cls.sim.get_magazine.add(product)
-        Arc.lock.release()
+        self._lock.acquire()
+        self._sim.get_magazine.add(product)
+        self._lock.release()

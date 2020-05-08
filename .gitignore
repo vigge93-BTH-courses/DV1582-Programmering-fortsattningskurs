@@ -4,4 +4,4 @@
 
 /venv
 
-sim.json
+*.json
