@@ -35,12 +35,11 @@ class Place(GUINodeInterface):
         """Remove and return the first token in the container."""
         if len(self._tokens) > 0:
             self.lock()
-            token = self._tokens[0]
+            token = self._tokens.pop(0)
             token.lock()
             self._gui_component.remove_token(token.get_gui_component)
             self.release()
             token.release()
-            self._tokens = self._tokens[1:]
             return token
         else:
             raise RuntimeError('Not enough resources')
