@@ -17,9 +17,10 @@ class Transition(GUINodeInterface, Thread):
         """Initialize transition."""
         Thread.__init__(self)
         GUINodeInterface.__init__(self, gui)
+
         self._tokens = []
-        self._stop_thread = False
         self._arc = arc
+        self._stop_thread = False
 
     def run(self):
         """Run the thread."""
@@ -36,7 +37,7 @@ class Transition(GUINodeInterface, Thread):
         """Set a flag for the thread to finish."""
         self._stop_thread = True
 
-    def _add_token(self, token_, /):
+    def _add_token(self, token_):
         """Append a token to the tokens and add it to the gui."""
         self.lock()
         token_.lock()
@@ -45,7 +46,7 @@ class Transition(GUINodeInterface, Thread):
         self.release()
         token_.release()
 
-    def _remove_token(self, token_, /):
+    def _remove_token(self, token_):
         """Remove a token and it's gui component."""
         self.lock()
         token_.lock()
@@ -54,15 +55,15 @@ class Transition(GUINodeInterface, Thread):
         self.release()
         token_.release()
 
-    def _get_tokens(self):
-        raise NotImplementedError
-
     def _find_token(self, type_):
         """Return the first token of type type_. Return None if no token is found."""
         for token_ in self._tokens:
             if isinstance(token_, type_):
                 return token_
         return None
+
+    def _get_tokens(self):
+        raise NotImplementedError
 
     def _trigger(self):
         raise NotImplementedError
@@ -91,9 +92,9 @@ class Foodcourt(Transition):
     def __init__(self, gui, arc):
         """Initialize foodcourt."""
         super().__init__(gui, arc)
-        self.create_gui_component()
+        self._create_gui_component()
 
-    def create_gui_component(self):
+    def _create_gui_component(self):
         """Create a green transition gui component."""
         parameters = {'lable': 'Foodcourt', 'color': '#00FF00'}
         self.lock()
@@ -103,10 +104,10 @@ class Foodcourt(Transition):
     def _get_tokens(self):
         """Fetch one worker and one food."""
         if not self._find_token(token.Worker):
-            if (worker := self._arc.get_worker()):
+            if worker := self._arc.get_worker():
                 self._add_token(worker)
         if not self._find_token(token.Food):
-            if (food := self._arc.get_food()):
+            if food := self._arc.get_food():
                 self._add_token(food)
         return self._find_token(token.Worker) and self._find_token(token.Food)
 
@@ -173,7 +174,7 @@ class Apartment(Transition):
     def __init__(self, gui, arc):
         """Initialize apartment."""
         super().__init__(gui, arc)
-        self.create_gui_component()
+        self._create_gui_component()
         self._mode = ApartmentMode.NEUTRAL
 
     @property
@@ -181,28 +182,28 @@ class Apartment(Transition):
         """Return current mode of apartment."""
         return self._mode
 
-    def create_gui_component(self):
+    def set_mode(self, mode):
+        """Set the mode of the apartment."""
+        self._mode = mode
+
+    def _create_gui_component(self):
         """Create a black transition gui component."""
         parameters = {'lable': 'Apartment', 'color': '#000000'}
         self.lock()
         self._gui_component = self._gui.create_transition_ui(parameters)
         self.release()
 
-    def set_mode(self, mode):
-        """Set the mode of the apartment."""
-        self._mode = mode
-
     def _get_tokens(self):
         """Fetch one product and one or two workers."""
         if not self._find_token(token.Product):
-            if (product := self._arc.get_product()):
+            if product := self._arc.get_product():
                 self._add_token(product)
         if not self._find_token(token.Worker):
-            if (worker := self._arc.get_worker()):
+            if worker := self._arc.get_worker():
                 self._add_token(worker)
             if ((self._mode == ApartmentMode.NEUTRAL and random.random() < 0.5)
                     or self._mode == ApartmentMode.MULTIPLY):
-                if (worker := self._arc.get_worker()):
+                if worker := self._arc.get_worker():
                     self._add_token(worker)
         return (self._find_token(token.Product)
                 and self._find_token(token.Worker))
@@ -270,9 +271,9 @@ class Farmland(Transition):
     def __init__(self, gui, arc):
         """Initialize farmland."""
         super().__init__(gui, arc)
-        self.create_gui_component()
+        self._create_gui_component()
 
-    def create_gui_component(self):
+    def _create_gui_component(self):
         """Create a brown transition gui component."""
         parameters = {'lable': 'Farmland', 'color': '#9C7200'}
         self.lock()
@@ -282,7 +283,7 @@ class Farmland(Transition):
     def _get_tokens(self):
         """Fetch a worker."""
         if not self._find_token(token.Worker):
-            if (worker := self._arc.get_worker()):
+            if worker := self._arc.get_worker():
                 self._add_token(worker)
         return bool(self._find_token(token.Worker))
 
@@ -347,9 +348,9 @@ class Factory(Transition):
     def __init__(self, gui, arc):
         """Inititalize factory."""
         super().__init__(gui, arc)
-        self.create_gui_component()
+        self._create_gui_component()
 
-    def create_gui_component(self):
+    def _create_gui_component(self):
         """Create a red transition gui component."""
         parameters = {'lable': 'Factory', 'color': '#6666ff'}
         self.lock()
@@ -359,7 +360,7 @@ class Factory(Transition):
     def _get_tokens(self):
         """Fetch a worker."""
         if not self._find_token(token.Worker):
-            if (worker := self._arc.get_worker()):
+            if worker := self._arc.get_worker():
                 self._add_token(worker)
         return bool(self._find_token(token.Worker))
 

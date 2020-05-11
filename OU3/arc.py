@@ -49,21 +49,21 @@ class Arc():
         self._lock.release()
         return product
 
-    def store_worker(self, worker, /):
+    def store_worker(self, worker):
         """Store a worker on the road."""
         sleep(Arc.transport_time)
         self._lock.acquire()
         self._sim.get_road.add(worker)
         self._lock.release()
 
-    def store_food(self, food, /):
+    def store_food(self, food):
         """Store a food in the shed."""
         sleep(Arc.transport_time)
         self._lock.acquire()
         self._sim.get_shed.add(food)
         self._lock.release()
 
-    def store_product(self, product, /):
+    def store_product(self, product):
         """Store a product in the magazine."""
         sleep(Arc.transport_time)
         self._lock.acquire()

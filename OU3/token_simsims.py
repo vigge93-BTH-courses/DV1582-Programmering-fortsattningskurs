@@ -19,9 +19,9 @@ class Product(Token):
     def __init__(self, gui):
         """Initialize product."""
         super().__init__(gui)
-        self.create_gui_component()
+        self._create_gui_component()
 
-    def create_gui_component(self):
+    def _create_gui_component(self):
         """Create a red token gui component and add it to the gui."""
         properties = {'color': '#6666ff'}
         self.lock()
@@ -35,9 +35,9 @@ class Food(Token):
     def __init__(self, gui):
         """Initialize Food."""
         super().__init__(gui)
-        self.create_gui_component()
+        self._create_gui_component()
 
-    def create_gui_component(self):
+    def _create_gui_component(self):
         """Create a green token gui component and add it to the gui."""
         properties = {'color': '#00ff00'}
         self.lock()
@@ -53,7 +53,7 @@ class Worker(Token):
     def __init__(self, gui):
         """Initialize worker."""
         super().__init__(gui)
-        self.create_gui_component()
+        self._create_gui_component()
         self._health = Worker.max_health
 
     @property
@@ -79,7 +79,7 @@ class Worker(Token):
         self._health += amount
         self._health = min(self._health, Worker.max_health)
 
-    def create_gui_component(self):
+    def _create_gui_component(self):
         """Create a black token gui component and add it to the gui."""
         properties = {'color': '#000000'}
         self.lock()

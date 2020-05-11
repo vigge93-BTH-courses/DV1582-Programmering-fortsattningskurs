@@ -39,6 +39,6 @@ class GUINodeInterface():
         """Release gui_component lock."""
         self._lock.release()
 
-    def create_gui_component(self):
+    def _create_gui_component(self):
         """Abstract method to create gui component."""
         raise NotImplementedError

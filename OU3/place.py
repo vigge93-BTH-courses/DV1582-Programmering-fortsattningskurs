@@ -9,8 +9,8 @@ from gui_node_interface import GUINodeInterface
 class Place(GUINodeInterface):
     """Parent class for all places."""
 
-    min_amount = 3
-    max_amount = 20
+    threshold_min = 3
+    threshold_max = 20
 
     def __init__(self, gui):
         """Initialize place."""
@@ -22,7 +22,7 @@ class Place(GUINodeInterface):
         """Return the number of tokens in the container."""
         return len(self._tokens)
 
-    def add(self, token, /):
+    def add(self, token):
         """Add a token to the container."""
         token.lock()
         self.lock()
@@ -46,7 +46,7 @@ class Place(GUINodeInterface):
 
     def need_to_adapt(self):
         """Return True if changes are needed to balance resources."""
-        adapt = not Place.min_amount <= self.get_amount <= Place.max_amount
+        adapt = not Place.threshold_min <= self.get_amount <= Place.threshold_max
         print(f'{type(self).__name__} needs to adapt: {adapt}')
         return adapt
 
@@ -66,9 +66,9 @@ class Shed(Place):
     def __init__(self, gui):
         """Initialize Shed."""
         super().__init__(gui)
-        self.create_gui_component()
+        self._create_gui_component()
 
-    def create_gui_component(self):
+    def _create_gui_component(self):
         """Create a green shed gui components and adds it to gui."""
         properties = {'lable': 'Shed', 'color': '#00ff00'}
         self.lock()
@@ -94,9 +94,9 @@ class Magazine(Place):
     def __init__(self, gui):
         """Initialize Magazine."""
         super().__init__(gui)
-        self.create_gui_component()
+        self._create_gui_component()
 
-    def create_gui_component(self):
+    def _create_gui_component(self):
         """Create a red magazine gui component and add it to gui."""
         properties = {'lable': 'Magazine', 'color': '#6666ff'}
         self.lock()
@@ -122,11 +122,11 @@ class Road(Place):
     def __init__(self, initial_workers, gui):
         """Initialize Road."""
         super().__init__(gui)
-        self.create_gui_component()
+        self._create_gui_component()
         for _ in range(initial_workers):
             self.add(token.Worker(gui))
 
-    def add(self, worker, /):
+    def add(self, worker):
         """Add a worker to the road.
 
         Reduce its health proportional to the amount
@@ -137,7 +137,7 @@ class Road(Place):
         if not worker.decrease_health(life_to_remove):
             super().add(worker)
 
-    def create_gui_component(self):
+    def _create_gui_component(self):
         """Create a black road gui component and add it to gui."""
         properties = {'lable': 'Road', 'color': '#000000'}
         self.lock()

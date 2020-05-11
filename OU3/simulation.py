@@ -16,15 +16,17 @@ class Simulation(threading.Thread):
         """Initialize Simulation."""
         threading.Thread.__init__(self)
         self._gui = None
-        self.create_gui()
-        self._lock = threading.Lock()
+        self._create_gui()
+
         self._arc = arc.Arc(self)
         self._road = place.Road(initial_workers, self._gui)
         self._shed = place.Shed(self._gui)
         self._magazine = place.Magazine(self._gui)
         self._transitions = []
-        self._running = False
+
         self._save_file = save_file
+        self._running = False
+        self._lock = threading.Lock()
 
     @property
     def get_road(self):
@@ -62,7 +64,7 @@ class Simulation(threading.Thread):
             if isinstance(trans, trans_type):
                 return trans
 
-    def create_gui(self):
+    def _create_gui(self):
         """Create a gui class attribute."""
         self._gui = simsimsui.SimSimsGUI(w=700, h=700)
         self._gui.on_shoot(self.stop)
@@ -92,7 +94,7 @@ class Simulation(threading.Thread):
 
         self._lock.release()
 
-    def add_transition(self, trans, /):
+    def add_transition(self, trans):
         """Add a transition to the simulation.
 
         Start its process if the simulation is running.
@@ -137,7 +139,7 @@ class Simulation(threading.Thread):
         if self._running:
             trans.start()
 
-    def remove_transition(self, trans, /):
+    def remove_transition(self, trans):
         """End transition's process and remove it from the simulation."""
         trans.finish_thread()
         trans.join()
@@ -184,7 +186,7 @@ class Simulation(threading.Thread):
         # ROADS - Controlled with apartments
         if self._road.need_to_adapt():
             # If there are too few workers, focus on reproduction or add one apartment
-            if self._road.get_amount < place.Place.min_amount:
+            if self._road.get_amount < place.Place.threshold_min:
                 for trans in self._transitions:
                     if isinstance(trans, transition.Apartment):
                         if trans.get_mode == transition.ApartmentMode.MULTIPLY:
@@ -213,7 +215,7 @@ class Simulation(threading.Thread):
         # SHEDS - Controlled with farmlands and foodcourts
         if self._shed.need_to_adapt():
             # If there are too few food, remove a foodcourt if possible, otherwise add a farmland
-            if self._shed.get_amount < place.Place.min_amount:
+            if self._shed.get_amount < place.Place.threshold_min:
                 if self.get_num_of_transitions(transition.Foodcourt) > 2:
                     foodcourt = self.get_transition(transition.Foodcourt)
                     self.remove_transition(foodcourt)
@@ -232,7 +234,7 @@ class Simulation(threading.Thread):
         # MAGAZINE - Controlled with factories primarily and apartments secondarily
         if self._magazine.need_to_adapt():
             # If there are too many products, remove a factory is possible, otherwise add an apartment
-            if self._magazine.get_amount > place.Place.max_amount:
+            if self._magazine.get_amount > place.Place.threshold_max:
                 if self.get_num_of_transitions(transition.Factory) > 2:
                     factory = self.get_transition(transition.Factory)
                     self.remove_transition(factory)
