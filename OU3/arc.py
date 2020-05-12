@@ -18,36 +18,33 @@ class Arc():
         sleep(Arc.transport_time)
         self._lock.acquire()
         try:
-            worker = self._sim.get_road.remove()
+            return self._sim.get_road.remove()
         except RuntimeError:
-            self._lock.release()
             return None
-        self._lock.release()
-        return worker
+        finally:
+            self._lock.release()
 
     def get_food(self):
         """Get a food from the shed. If the shed is empty, return None."""
         sleep(Arc.transport_time)
         self._lock.acquire()
         try:
-            food = self._sim.get_shed.remove()
+            return self._sim.get_shed.remove()
         except RuntimeError:
-            self._lock.release()
             return None
-        self._lock.release()
-        return food
+        finally:
+            self._lock.release()
 
     def get_product(self):
         """Get product from the magazine. If magazine is empty, return None."""
         sleep(Arc.transport_time)
         self._lock.acquire()
         try:
-            product = self._sim.get_magazine.remove()
+            return self._sim.get_magazine.remove()
         except RuntimeError:
-            self._lock.release()
             return None
-        self._lock.release()
-        return product
+        finally:
+            self._lock.release()
 
     def store_worker(self, worker):
         """Store a worker on the road."""
