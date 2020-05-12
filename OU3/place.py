@@ -32,7 +32,11 @@ class Place(GUINodeInterface):
         token.release()
 
     def remove(self):
-        """Remove and return the first token in the container."""
+        """
+        Remove and return the first token in the container.
+
+        Raise RuntimeError if the container is empty.
+        """
         if len(self._tokens) > 0:
             self.lock()
             token = self._tokens.pop(0)
@@ -42,7 +46,7 @@ class Place(GUINodeInterface):
             token.release()
             return token
         else:
-            raise RuntimeError('Not enough resources')
+            raise RuntimeError(f'Not enough resources in {type(self).__name__}')
 
     def need_to_adapt(self):
         """Return True if changes are needed to balance resources."""
