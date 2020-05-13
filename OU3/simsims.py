@@ -31,3 +31,5 @@ if __name__ == '__main__':
     sim2.start()
 
     input()
+    sim.join()
+    sim2.join()
