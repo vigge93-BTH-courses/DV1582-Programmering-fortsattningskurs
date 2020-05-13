@@ -20,16 +20,17 @@ def sim_from_json(load_file, save_file):
 new_sim = True
 
 if __name__ == '__main__':
+    sims = []
     if new_sim:
-        sim = create_new_sim('sim.json')
-        sim2 = create_new_sim('sim2.json')
+        for i in range(2):
+            sims.append(create_new_sim(f'sim{i}.json'))
     else:
-        sim = sim_from_json('sim.json', 'sim.json')
-        sim2 = sim_from_json('sim2.json', 'sim2.json')
+        sims.append(sim_from_json('sim.json', 'sim.json'))
+        sims.append(sim_from_json('sim2.json', 'sim2.json'))
 
-    sim.start()
-    sim2.start()
+    for sim in sims:
+        sim.start()
 
     input()
-    sim.join()
-    sim2.join()
+    for sim in sims:
+        sim.join()
