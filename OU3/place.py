@@ -2,7 +2,6 @@
 import json
 
 import token_simsims as token
-import simulation
 from gui_node_interface import GUINodeInterface
 
 

@@ -4,10 +4,8 @@ import random
 from time import sleep
 from threading import Thread
 
-import simulation
 import token_simsims as token
 from gui_node_interface import GUINodeInterface
-from arc import Arc
 
 
 class Transition(GUINodeInterface, Thread):

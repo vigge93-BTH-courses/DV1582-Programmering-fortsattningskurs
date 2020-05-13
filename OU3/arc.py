@@ -3,7 +3,7 @@ from time import sleep
 
 
 class Arc():
-    """Static class to manage transportation of tokens."""
+    """Class to manage transportation of tokens."""
 
     transport_time = 0.2
 

@@ -1,8 +1,6 @@
 """Module for implementing SimSimsGUI Nodes."""
 from threading import Lock
 
-import simulation
-
 
 class GUINodeInterface():
     """Abstract class for GUINodeComponent implementation."""

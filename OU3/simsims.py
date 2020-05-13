@@ -1,9 +1,6 @@
 import json
 
-import simsimsui
 import simulation
-import arc
-import transition
 
 
 def create_new_sim(save_file):
