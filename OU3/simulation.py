@@ -66,7 +66,7 @@ class Simulation(threading.Thread):
 
     def _create_gui(self):
         """Create a gui class attribute."""
-        self._gui = simsimsui.SimSimsGUI(w=700, h=700)
+        self._gui = simsimsui.SimSimsGUI(w=950, h=950)
         self._gui.on_shoot(self.stop)
 
     def update_gui_positions(self):

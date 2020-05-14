@@ -69,7 +69,6 @@ class Shed(Place):
     def __init__(self, gui):
         """Initialize Shed."""
         super().__init__(gui)
-        self._create_gui_component()
 
     def _create_gui_component(self):
         """Create a green shed gui components and adds it to gui."""
@@ -97,7 +96,6 @@ class Magazine(Place):
     def __init__(self, gui):
         """Initialize Magazine."""
         super().__init__(gui)
-        self._create_gui_component()
 
     def _create_gui_component(self):
         """Create a red magazine gui component and add it to gui."""
@@ -125,7 +123,6 @@ class Road(Place):
     def __init__(self, initial_workers, gui):
         """Initialize Road."""
         super().__init__(gui)
-        self._create_gui_component()
         for _ in range(initial_workers):
             self.add(token.Worker(gui))
 

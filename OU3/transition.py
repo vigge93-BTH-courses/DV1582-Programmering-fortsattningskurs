@@ -90,7 +90,6 @@ class Foodcourt(Transition):
     def __init__(self, gui, arc):
         """Initialize foodcourt."""
         super().__init__(gui, arc)
-        self._create_gui_component()
 
     def _create_gui_component(self):
         """Create a green transition gui component."""
@@ -172,7 +171,6 @@ class Apartment(Transition):
     def __init__(self, gui, arc):
         """Initialize apartment."""
         super().__init__(gui, arc)
-        self._create_gui_component()
         self._mode = ApartmentMode.NEUTRAL
 
     @property
@@ -269,7 +267,6 @@ class Farmland(Transition):
     def __init__(self, gui, arc):
         """Initialize farmland."""
         super().__init__(gui, arc)
-        self._create_gui_component()
 
     def _create_gui_component(self):
         """Create a brown transition gui component."""
@@ -346,7 +343,6 @@ class Factory(Transition):
     def __init__(self, gui, arc):
         """Inititalize factory."""
         super().__init__(gui, arc)
-        self._create_gui_component()
 
     def _create_gui_component(self):
         """Create a red transition gui component."""

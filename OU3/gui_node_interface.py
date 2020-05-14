@@ -10,6 +10,7 @@ class GUINodeInterface():
         self._gui = gui
         self._gui_component = None
         self._lock = Lock()
+        self._create_gui_component()
 
     def __del__(self):
         """Remove own gui_component."""
