@@ -87,9 +87,9 @@ class Simulation(threading.Thread):
         self._magazine.get_gui_component.autoplace(2, num_of_gui_objects)
         self._magazine.release()
 
-        for idx, trans in enumerate(self._transitions):
+        for idx, trans in enumerate(self._transitions, 3):
             trans.lock()
-            trans.get_gui_component.autoplace(idx + 3, num_of_gui_objects)
+            trans.get_gui_component.autoplace(idx, num_of_gui_objects)
             trans.release()
 
         self._lock.release()
