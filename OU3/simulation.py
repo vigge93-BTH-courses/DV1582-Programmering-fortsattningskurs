@@ -1,6 +1,5 @@
 """Module for running a petri net simulation following SimSims rules."""
 import threading
-from time import sleep
 import json
 
 import simsimsui
@@ -27,6 +26,7 @@ class Simulation(threading.Thread):
         self._save_file = save_file
         self._running = False
         self._lock = threading.Lock()
+        self._timer = threading.Event()
 
     @property
     def get_road(self):
@@ -163,7 +163,7 @@ class Simulation(threading.Thread):
         self.update_gui_positions()
         while self._running:
             self.adapt()
-            sleep(10)
+            self._timer.wait(10)
         print('Main loop stopped')
         for trans in self._transitions:
             if trans.is_alive():
@@ -175,9 +175,11 @@ class Simulation(threading.Thread):
         print('Stopping')
         with open(self._save_file, 'w', encoding='utf-8') as f:
             f.write(json.dumps(self.to_dict()))
+        self._arc.set_timer()
         for transition in self._transitions:
             transition.finish_thread()
         self._running = False
+        self._timer.set()
 
     def adapt(self):
         """Add/remove transitions or change apartment priority to balance the system."""

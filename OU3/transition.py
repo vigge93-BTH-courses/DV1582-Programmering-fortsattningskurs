@@ -2,7 +2,7 @@
 from enum import Enum, unique
 import random
 from time import sleep
-from threading import Thread
+from threading import Thread, Event
 
 import token_simsims as token
 from gui_node_interface import GUINodeInterface
@@ -19,6 +19,7 @@ class Transition(GUINodeInterface, Thread):
         self._tokens = []
         self._arc = arc
         self._stop_thread = False
+        self._timer = Event()
 
     def run(self):
         """Run the thread."""
@@ -27,13 +28,14 @@ class Transition(GUINodeInterface, Thread):
                 self._trigger()
                 self._release_tokens()
             else:
-                sleep(2)
+                self._timer.wait(2)
         self._release_tokens()
         print('Thread closed')
 
     def finish_thread(self):
         """Set a flag for the thread to finish."""
         self._stop_thread = True
+        self._timer.set()
 
     def _add_token(self, token_):
         """Append a token to the tokens and add it to the gui."""
@@ -110,7 +112,7 @@ class Foodcourt(Transition):
 
     def _trigger(self):
         """Consume one food and heal or poison worker."""
-        sleep(Foodcourt.production_time)
+        self._timer.wait(Foodcourt.production_time)
 
         health_diff = random.randint(
             Foodcourt.min_restore, Foodcourt.max_restore)
@@ -206,7 +208,7 @@ class Apartment(Transition):
 
     def _trigger(self):
         """If apartment has one worker, heal it. If apartment has two workers, create a third worker. Consumes the product."""
-        sleep(Apartment.rest_time)
+        self._timer.wait(Apartment.rest_time)
         if len(self._tokens) == 3:  # Two workers and one product
             self._add_token(token.Worker(self._gui))
         else:
@@ -284,7 +286,7 @@ class Farmland(Transition):
 
     def _trigger(self):
         """Produce one food, has a risk of damaging the worker."""
-        sleep(Farmland.production_time)
+        self._timer.wait(Farmland.production_time)
         food = token.Food(self._gui)
         self._add_token(food)
         if random.random() < Farmland.risk:
@@ -367,7 +369,7 @@ class Factory(Transition):
         production_time = (Factory.base_production_time
                            + (token.Worker.max_health - worker.health)
                            * Factory.production_time_multiplier)
-        sleep(production_time)
+        self._timer.wait(production_time)
         self._add_token(token.Product(self._gui))
         worker.decrease_health(random.randint(
             Factory.min_damage, Factory.max_damage))
