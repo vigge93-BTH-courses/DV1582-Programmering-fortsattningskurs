@@ -1,5 +1,4 @@
 """Module for arc that handles transportation of tokens."""
-from time import sleep
 from threading import Event
 
 

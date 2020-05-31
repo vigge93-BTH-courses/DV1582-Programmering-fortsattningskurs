@@ -1,19 +1,19 @@
 """Module for running a petri net simulation following SimSims rules."""
-import threading
 import json
+from threading import Thread, Lock, Event
 
-import simsimsui
-import place
-import transition
 import arc
+import place
+import simsimsui
+import transition
 
 
-class Simulation(threading.Thread):
+class Simulation(Thread):
     """Manages and keeps track of all objects in the simulation."""
 
     def __init__(self, save_file, initial_workers=0):
         """Initialize Simulation."""
-        threading.Thread.__init__(self)
+        Thread.__init__(self)
         self._gui = None
         self._create_gui()
 
@@ -25,8 +25,8 @@ class Simulation(threading.Thread):
 
         self._save_file = save_file
         self._running = False
-        self._lock = threading.Lock()
-        self._timer = threading.Event()
+        self._lock = Lock()
+        self._timer = Event()
 
     @property
     def get_road(self):
@@ -66,7 +66,7 @@ class Simulation(threading.Thread):
 
     def _create_gui(self):
         """Create a gui class attribute."""
-        self._gui = simsimsui.SimSimsGUI(w=950, h=950)
+        self._gui = simsimsui.SimSimsGUI(w=700, h=700)
         self._gui.on_shoot(self.stop)
 
     def update_gui_positions(self):

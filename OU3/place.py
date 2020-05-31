@@ -1,6 +1,4 @@
 """Module for places that store tokens."""
-import json
-
 import token_simsims as token
 from gui_node_interface import GUINodeInterface
 

@@ -1,8 +1,7 @@
 """Module for transitions."""
-from enum import Enum, unique
 import random
-from time import sleep
-from threading import Thread, Event
+from enum import Enum, unique
+from threading import Event, Thread
 
 import token_simsims as token
 from gui_node_interface import GUINodeInterface

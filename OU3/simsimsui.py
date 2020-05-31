@@ -1,9 +1,10 @@
-import mtTkinter
-from tkinter import font
-from math import sqrt, sin, cos, pi
-from copy import deepcopy, copy
 import io
 import sys
+from copy import copy, deepcopy
+from math import cos, pi, sin, sqrt
+from tkinter import font
+
+import mtTkinter
 
 """ A text and graphical user iterface for a SImSims network """
 
