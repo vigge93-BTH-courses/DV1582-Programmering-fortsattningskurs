@@ -34,8 +34,8 @@ class Place(GUINodeInterface):
 
         Raise RuntimeError if the container is empty.
         """
+        self.lock()
         if len(self._tokens) > 0:
-            self.lock()
             token = self._tokens.pop(0)
             token.lock()
             self._gui_component.remove_token(token.get_gui_component)
@@ -43,7 +43,8 @@ class Place(GUINodeInterface):
             token.release()
             return token
         else:
-            raise RuntimeError(f'Not enough resources in {type(self).__name__}')
+            self.release()
+            raise RuntimeError(f'Not enough resources in {type(self).__name__}') 
 
     def need_to_adapt(self):
         """Return True if changes are needed to balance resources."""
