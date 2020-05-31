@@ -25,12 +25,21 @@ if __name__ == '__main__':
         for i in range(2):
             sims.append(create_new_sim(f'sim{i}.json'))
     else:
-        sims.append(sim_from_json('sim.json', 'sim.json'))
-        sims.append(sim_from_json('sim2.json', 'sim2.json'))
+        sims.append(sim_from_json('sim0.json', 'sim.json'))
+        sims.append(sim_from_json('sim1.json', 'sim2.json'))
 
     for sim in sims:
         sim.start()
 
-    input()
+    all_threads_closed = False
+    while not all_threads_closed:
+        input()
+        all_threads_closed = True
+        for sim in sims:
+            if sim.is_alive():
+                all_threads_closed = False
+        if not all_threads_closed:
+            print('Please close all windows before exiting.', end='')
+
     for sim in sims:
         sim.join()
